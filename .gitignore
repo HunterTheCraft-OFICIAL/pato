@@ -1,0 +1,10 @@
+# Backup files created by MT Manager and other editors
+*.bak
+*~
+.bak
+
+# Local Android SDK path – NEVER commit
+# local.properties
+
+# Log and temporary files
+# *.log
