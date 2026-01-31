@@ -1,10 +1,10 @@
 package io.hunterthecraft.pato.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.InputAdapter;
 import io.hunterthecraft.pato.PatoGame;
 
 public class MainMenuScreen extends InputAdapter implements Screen {
@@ -23,23 +23,19 @@ public class MainMenuScreen extends InputAdapter implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0.2f, 0.3f, 0.2f, 1); // verde escuro
+        ScreenUtils.clear(0.2f, 0.3f, 0.2f, 1);
         batch.begin();
-        // Aqui pode desenhar "PATO - Main Menu"
+        // Aqui pode desenhar texto depois
         batch.end();
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        // Qualquer toque inicia o jogo (MVP simples)
         game.setScreen(new GameScreen(game));
         return true;
     }
 
-    @Override
-    public void dispose() {}
-
-    // Outros métodos vazios...
+    @Override public void dispose() {}
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}

@@ -19,13 +19,10 @@ public class LoadingScreen implements Screen {
     @Override
     public void show() {
         batch = game.batch;
-        // Carregue assets pesados aqui (ex: tileset, fontes)
-        logo = new Texture("libgdx.png"); // placeholder
-
-        // Simula carregamento (em 2 segundos vai pro menu)
+        logo = new Texture("libgdx.png");
         Gdx.app.postRunnable(() -> {
             game.setScreen(new MainMenuScreen(game));
-            dispose(); // libera loading
+            dispose();
         });
     }
 
@@ -42,7 +39,6 @@ public class LoadingScreen implements Screen {
         if (logo != null) logo.dispose();
     }
 
-    // Métodos vazios obrigatórios
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}
