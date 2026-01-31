@@ -48,7 +48,7 @@ jobs:
       - name: Artifact - Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: bin-android-apk
+          name: bin-teste-android-apk
           path: android/build/outputs/apk/debug/*.apk
 
      # - name: Artifact - Desktop JAR
