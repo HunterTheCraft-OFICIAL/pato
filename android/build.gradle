@@ -9,7 +9,7 @@ apply plugin: 'com.android.application'
 
 
 android {
-  namespace = "io.hunterthecraft.strategy"
+  namespace = "io.hunterthecraft.pato"
   compileSdk = 35
   sourceSets {
     main {
@@ -31,7 +31,7 @@ android {
 		}
   }
   defaultConfig {
-    applicationId 'io.hunterthecraft.strategy'
+    applicationId 'io.hunterthecraft.pato'
     minSdkVersion 21
     targetSdkVersion 35
     versionCode 1

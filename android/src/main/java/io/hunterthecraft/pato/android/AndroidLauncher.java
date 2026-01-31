@@ -1,10 +1,10 @@
-package io.hunterthecraft.strategy.android;
+package io.hunterthecraft.pato.android;
 
 import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import io.hunterthecraft.strategy.Main;
+import io.hunterthecraft.pato.Main;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
