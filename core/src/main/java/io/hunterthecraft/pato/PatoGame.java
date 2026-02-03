@@ -3,7 +3,7 @@ package io.hunterthecraft.pato;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.hunterthecraft.pato.screen.LoadingScreen; // ← IMPORT ESSENCIAL
+import io.hunterthecraft.pato.screen.SplashScreen; // ← CORRIGIDO: SplashScreen
 
 public class PatoGame extends Game {
     public SpriteBatch batch;
@@ -11,7 +11,7 @@ public class PatoGame extends Game {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        setScreen(new LoadingScreen(this)); // agora encontra a classe
+        setScreen(new SplashScreen(this)); // ← CORRIGIDO
     }
 
     @Override
