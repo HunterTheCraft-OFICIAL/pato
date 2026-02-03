@@ -2,13 +2,11 @@
 package io.hunterthecraft.pato.data;
 
 public enum TileType {
-    // === TERRA: Biomas brasileiros ===
     AMAZONIA("debug_amazonia", "Amazônia", true),
     CERRADO("debug_cerrado", "Cerrado", true),
     CAATINGA("debug_caatinga", "Caatinga", true),
     AREIA_SUDESTE("debug_areia_sudeste", "Areia (SE)", true),
 
-    // === ÁGUA: Sistema hídrico modular ===
     RIO_RETO_V("debug_rio_reto_V", "Rio Reto (V)", false),
     RIO_CURVA_NE("debug_curva_NE", "Curva NE", false),
     LAGO_G("debug_lago_G", "Lago (G)", false),

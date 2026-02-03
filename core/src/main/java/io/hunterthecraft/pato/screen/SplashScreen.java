@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.hunterthecraft.pato.PatoGame;
+import io.hunterthecraft.pato.screen.ErrorScreen;
+import io.hunterthecraft.pato.screen.MainMenuScreen;
 
 public class SplashScreen implements Screen {
     private PatoGame game;
@@ -21,16 +23,21 @@ public class SplashScreen implements Screen {
     public void show() {
         batch = game.batch;
         try {
-            logo = new Texture("libgdx.png");
+            // Usa o logo gerado por você!
+            logo = new Texture("fallback_assets/logo.png");
         } catch (Exception e) {
-            Gdx.app.error("SplashScreen", "Failed to load logo", e);
+            Gdx.app.error("SplashScreen", "Falha ao carregar logo", e);
             logo = null;
         }
 
-        // Troca para o menu principal após um breve delay (ou imediatamente)
+        // Agende transição com proteção total
         Gdx.app.postRunnable(() -> {
-            game.setScreen(new MainMenuScreen(game));
-            dispose();
+            try {
+                game.setScreen(new MainMenuScreen(game));
+            } catch (Exception e) {
+                Gdx.app.error("SplashScreen", "Falha ao abrir menu", e);
+                game.setScreen(new ErrorScreen(game, "Erro no menu:\n" + e.toString()));
+            }
         });
     }
 
@@ -48,10 +55,7 @@ public class SplashScreen implements Screen {
 
     @Override
     public void dispose() {
-        if (logo != null && !logo.getTextureData().isPrepared()) {
-            logo.dispose();
-            logo = null;
-        }
+        if (logo != null) logo.dispose();
     }
 
     @Override public void resize(int width, int height) {}

@@ -12,27 +12,21 @@ public class PatoGame extends Game {
 
     @Override
     public void create() {
+        // Handler global de erros
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             Gdx.app.error("CRASH", "Unhandled exception", throwable);
-            String message = throwable.toString() + "\n" + getStackTrace(throwable);
+            String message = throwable.toString();
             setScreen(new ErrorScreen(PatoGame.this, message));
         });
 
         batch = new SpriteBatch();
+        Gdx.app.log("PatoGame", "Iniciando SplashScreen...");
         try {
             setScreen(new SplashScreen(this));
         } catch (Exception e) {
-            Gdx.app.error("STARTUP", "Failed to start", e);
+            Gdx.app.error("PatoGame", "Falha ao iniciar SplashScreen", e);
             setScreen(new ErrorScreen(this, e.toString()));
         }
-    }
-
-    private String getStackTrace(Throwable t) {
-        StringBuilder sb = new StringBuilder();
-        for (StackTraceElement element : t.getStackTrace()) {
-            sb.append(element.toString()).append("\n");
-        }
-        return sb.toString();
     }
 
     @Override

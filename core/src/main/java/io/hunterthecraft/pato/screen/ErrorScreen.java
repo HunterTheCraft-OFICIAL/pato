@@ -5,7 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.utils.ScreenUtils; // ← Import correto para limpar a tela
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -49,7 +49,7 @@ public class ErrorScreen implements Screen {
         table.setFillParent(true);
         table.center().top().padTop(50);        table.add(errorLabel).width(350).padBottom(30).row();
 
-        // Botão: Copiar Logs
+        // Copiar Logs
         TextButton copyButton = new TextButton("Copiar Logs", skin);
         copyButton.addListener(new ClickListener() {
             @Override
@@ -60,7 +60,7 @@ public class ErrorScreen implements Screen {
         });
         table.add(copyButton).width(200).height(40).padBottom(10).row();
 
-        // Botão: Menu Principal
+        // Menu Principal
         TextButton menuButton = new TextButton("Menu Principal", skin);
         menuButton.addListener(new ClickListener() {
             @Override
@@ -70,7 +70,7 @@ public class ErrorScreen implements Screen {
         });
         table.add(menuButton).width(200).height(40).padBottom(10).row();
 
-        // Botão: Sair
+        // Sair
         TextButton exitButton = new TextButton("Sair", skin);
         exitButton.addListener(new ClickListener() {
             @Override
@@ -85,8 +85,7 @@ public class ErrorScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        // Usa ScreenUtils.clear() → seguro, sem GL20
-        ScreenUtils.clear(0.1f, 0.0f, 0.0f, 1); // vermelho escuro
+        ScreenUtils.clear(0.2f, 0.0f, 0.0f, 1); // vermelho escuro
         stage.act(delta);
         stage.draw();
     }
@@ -96,8 +95,8 @@ public class ErrorScreen implements Screen {
         stage.getViewport().update(width, height, true);
     }
 
-    @Override public void pause() {}    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override public void pause() {}
+    @Override public void resume() {}    @Override public void hide() {}
     @Override
     public void dispose() {
         if (stage != null) stage.dispose();

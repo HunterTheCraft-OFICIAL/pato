@@ -34,24 +34,20 @@ public class GameLoadingScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         assetManager = new AssetManager();
 
-        // Carrega fonte
         font = new BitmapFont(Gdx.files.internal("ui/font.fnt"));
         font.getData().setScale(1.0f);
 
-        // Skin mínima
         skin = new Skin();
         skin.add("default-font", font);
         skin.add("white", new Texture(Gdx.files.internal("ui/uiskin.png")));
 
-        // Estilo da barra de progresso
         ProgressBar.ProgressBarStyle pbStyle = new ProgressBar.ProgressBarStyle();
         pbStyle.background = skin.newDrawable("white", 0.3f, 0.3f, 0.4f, 1);
         pbStyle.knobBefore = skin.newDrawable("white", 0.2f, 0.8f, 0.2f, 1);
         skin.add("default-horizontal", pbStyle);
+
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, com.badlogic.gdx.graphics.Color.WHITE);
         skin.add("default", labelStyle);
-
-        // Layout
         Table table = new Table();
         table.setFillParent(true);
         table.center();
@@ -65,7 +61,7 @@ public class GameLoadingScreen implements Screen {
 
         stage.addActor(table);
 
-        // Enfileira todos os tiles
+        // Carrega todos os tiles
         for (TileType type : TileType.values()) {
             assetManager.load(type.getAssetPath(), Texture.class);
         }
@@ -96,11 +92,10 @@ public class GameLoadingScreen implements Screen {
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
+
     @Override
     public void dispose() {
         if (stage != null) stage.dispose();
-        if (skin != null) skin.dispose();
-        if (font != null) font.dispose();
-        // AssetManager é passado para GameScreen — não descartamos aqui!
+        if (skin != null) skin.dispose();        if (font != null) font.dispose();
     }
 }

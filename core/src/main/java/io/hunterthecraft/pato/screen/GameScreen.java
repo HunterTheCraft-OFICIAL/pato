@@ -45,7 +45,7 @@ public class GameScreen implements Screen {
         float offsetX = (Gdx.graphics.getWidth() - mapWidth * tileSize) / 2f;
         float offsetY = (Gdx.graphics.getHeight() - mapHeight * tileSize) / 2f;
 
-        // Primeiro: terreno (sem alpha)
+        // Primeiro: terreno
         for (int y = 0; y < mapHeight; y++) {
             for (int x = 0; x < mapWidth; x++) {
                 TileType tile = exampleMap[y][x];
@@ -56,7 +56,7 @@ public class GameScreen implements Screen {
             }
         }
 
-        // Depois: água (com alpha, por cima)
+        // Depois: água (com alpha)
         for (int y = 0; y < mapHeight; y++) {
             for (int x = 0; x < mapWidth; x++) {
                 TileType tile = exampleMap[y][x];
@@ -74,9 +74,5 @@ public class GameScreen implements Screen {
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
-
-    @Override
-    public void dispose() {
-        // AssetManager será descartado pelo jogo principal ou tela anterior
-    }
+    @Override public void dispose() {}
 }
