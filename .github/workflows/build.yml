@@ -23,6 +23,9 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        
+      - name: Ensure Gradle Wrapper executable
+        run: chmod +x ./gradlew
 
       - name: Build Android Debug
         run: ./gradlew :android:assembleDebug
