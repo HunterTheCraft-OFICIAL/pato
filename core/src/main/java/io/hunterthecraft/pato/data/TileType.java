@@ -2,11 +2,19 @@
 package io.hunterthecraft.pato.data;
 
 public enum TileType {
-    PLAIN("plain", "Campo", true),
-    FOREST("forest", "Floresta", true),
-    MOUNTAIN("mountain", "Montanha", false),
-    WATER("water", "Água", false),
-    RUINS("ruins", "Ruínas", true);
+    // === TERRA: Biomas brasileiros ===
+    AMAZONIA("debug_amazonia", "Amazônia", true),
+    CERRADO("debug_cerrado", "Cerrado", true),
+    CAATINGA("debug_caatinga", "Caatinga", true),
+    AREIA_SUDESTE("debug_areia_sudeste", "Areia (SE)", true),
+
+    // === ÁGUA: Sistema hídrico modular ===
+    RIO_RETO_V("debug_rio_reto_V", "Rio Reto (V)", false),
+    RIO_CURVA_NE("debug_curva_NE", "Curva NE", false),
+    LAGO_G("debug_lago_G", "Lago (G)", false),
+    FOZ_N("debug_foz_N", "Foz (N)", false),
+    CRUZAMENTO_P("debug_cruzamento_P", "Cruzamento (P)", false),
+    PONTA_S("debug_ponta_S", "Ponta Sul", false);
 
     public final String key;
     public final String name;
@@ -16,5 +24,17 @@ public enum TileType {
         this.key = key;
         this.name = name;
         this.buildable = buildable;
+    }
+
+    /**
+     * Retorna o caminho relativo do asset com base no tipo.
+     * Tiles de água estão em "tiles_hydric/", os demais em "tiles/".
+     */
+    public String getAssetPath() {
+        if (this == RIO_RETO_V || this == RIO_CURVA_NE || this == LAGO_G ||
+            this == FOZ_N || this == CRUZAMENTO_P || this == PONTA_S) {
+            return "tiles_hydric/" + key + ".png";
+        }
+        return "tiles/" + key + ".png";
     }
 }
