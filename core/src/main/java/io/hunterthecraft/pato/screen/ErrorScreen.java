@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.utils.ScreenUtils; // ← Import correto para limpar a tela
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -46,8 +47,7 @@ public class ErrorScreen implements Screen {
 
         Table table = new Table();
         table.setFillParent(true);
-        table.center().top().padTop(50);
-        table.add(errorLabel).width(350).padBottom(30).row();
+        table.center().top().padTop(50);        table.add(errorLabel).width(350).padBottom(30).row();
 
         // Botão: Copiar Logs
         TextButton copyButton = new TextButton("Copiar Logs", skin);
@@ -85,15 +85,21 @@ public class ErrorScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.1f, 0.0f, 0.0f, 1); // fundo vermelho escuro
-        Gdx.gl.glClear(com.badlogic.gdx.GL20.GL_COLOR_BUFFER_BIT);
+        // Usa ScreenUtils.clear() → seguro, sem GL20
+        ScreenUtils.clear(0.1f, 0.0f, 0.0f, 1); // vermelho escuro
         stage.act(delta);
         stage.draw();
     }
 
-    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
-    @Override public void pause() {}
-    @Override public void resume() {}
+    @Override
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height, true);
+    }
+
+    @Override public void pause() {}    @Override public void resume() {}
     @Override public void hide() {}
-    @Override public void dispose() { if (stage != null) stage.dispose(); }
+    @Override
+    public void dispose() {
+        if (stage != null) stage.dispose();
+    }
 }
