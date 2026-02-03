@@ -1,3 +1,5 @@
+[![GDX-Liftoff Build](https://github.com/HunterTheCraft-OFICIAL/pato/actions/workflows/build.yml/badge.svg)](https://github.com/HunterTheCraft-OFICIAL/pato/actions/workflows/build.yml)
+
 # gdx-liftoff-demo
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
