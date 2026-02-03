@@ -28,13 +28,20 @@ public enum TileType {
 
     /**
      * Retorna o caminho relativo do asset com base no tipo.
-     * Tiles de água estão em "tiles_hydric/", os demais em "tiles/".
      */
     public String getAssetPath() {
-        if (this == RIO_RETO_V || this == RIO_CURVA_NE || this == LAGO_G ||
-            this == FOZ_N || this == CRUZAMENTO_P || this == PONTA_S) {
+        if (isWater()) {
             return "tiles_hydric/" + key + ".png";
         }
         return "tiles/" + key + ".png";
+    }
+
+    /**
+     * Verifica se este tile é de água (deve ser renderizado com alpha, por cima do terreno).
+     */
+    public boolean isWater() {
+        return this == RIO_RETO_V || this == RIO_CURVA_NE ||
+               this == LAGO_G || this == FOZ_N ||
+               this == CRUZAMENTO_P || this == PONTA_S;
     }
 }
