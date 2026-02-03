@@ -1,4 +1,4 @@
-name: GDX-Liftoff Build (Android)
+name: GDX-Liftoff Build
 
 on:
   push:
@@ -8,13 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-android:
+  build-and-upload:
+    name: Build Android & Core + Full Debug
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      # =========================================================
+      # 1️⃣ PREPARAÇÃO
+      # =========================================================
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java 17 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -23,15 +28,65 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        
+
       - name: Ensure Gradle Wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build Android Debug
-        run: ./gradlew :android:assembleDebug
+      # =========================================================
+      # 2️⃣ COMPILAÇÃO (Android + Core)
+      # =========================================================
+      - name: Build Core and Android
+        run: |
+          ./gradlew :core:build
+          ./gradlew :android:assembleDebug
+          # Plataformas não usadas (iOS, Desktop, HTML) permanecem comentadas
 
-      - name: Upload APK
+      # =========================================================
+      # 3️⃣ ARTEFATOS ÚTEIS
+      # =========================================================
+      - name: Artifact - Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-debug-apk
+          name: bin-android-apk
           path: android/build/outputs/apk/debug/*.apk
+
+      - name: Artifact - Core JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-core-jar
+          path: core/build/libs/*.jar
+
+      # =========================================================
+      # 4️⃣ DEPURAÇÃO COMPLETA (MANTIDA POR IMPORTÂNCIA)
+      # =========================================================
+      - name: Debug - Root Directory (Full)
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-root-full
+          path: ./*
+          include-hidden-files: true
+
+      - name: Debug - Android Folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-android-folder
+          path: android/*
+
+      - name: Debug - Core Folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-core-folder
+          path: core/*
+
+      # ⚠️ As pastas abaixo estão comentadas porque não existem ou não são usadas
+      # - name: Debug - LWJGL3 Folder
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: debug-lwjgl3-folder
+      #     path: lwjgl3/*
+      #
+      # - name: Debug - iOS Folder
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: debug-ios-folder
+      #     path: ios/*
