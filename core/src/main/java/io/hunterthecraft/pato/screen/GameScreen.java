@@ -19,11 +19,11 @@ public class GameScreen implements Screen {
 
     // Mapa de exemplo 5x5 (substitua por GameMap depois)
     private TileType[][] exampleMap = {
-        {TileType.AMAZONIA, TileType.AMAZONIA, TileType.RIO_RETO_V, TileType.CAATINGA, TileType.CAATINGA},
-        {TileType.CERRADO, TileType.AMAZONIA, TileType.RIO_RETO_V, TileType.CAATINGA, TileType.AREIA_SUDESTE},
-        {TileType.CERRADO, TileType.RIO_CURVA_NE, TileType.LAGO_G, TileType.FOZ_N, TileType.AREIA_SUDESTE},
-        {TileType.CERRADO, TileType.CRUZAMENTO_P, TileType.PONTA_S, TileType.AMAZONIA, TileType.AMAZONIA},
-        {TileType.CAATINGA, TileType.CAATINGA, TileType.CAATINGA, TileType.CERRADO, TileType.CERRADO}
+            {TileType.AMAZONIA, TileType.AMAZONIA, TileType.RIO_RETO_V, TileType.CAATINGA, TileType.CAATINGA},
+            {TileType.CERRADO, TileType.AMAZONIA, TileType.RIO_RETO_V, TileType.CAATINGA, TileType.AREIA_SUDESTE},
+            {TileType.CERRADO, TileType.RIO_CURVA_NE, TileType.LAGO_G, TileType.FOZ_N, TileType.AREIA_SUDESTE},
+            {TileType.CERRADO, TileType.CRUZAMENTO_P, TileType.PONTA_S, TileType.AMAZONIA, TileType.AMAZONIA},
+            {TileType.CAATINGA, TileType.CAATINGA, TileType.CAATINGA, TileType.CERRADO, TileType.CERRADO}
     };
 
     public GameScreen(PatoGame game) {
@@ -67,14 +67,21 @@ public class GameScreen implements Screen {
     public void dispose() {
         // Libera texturas
         for (Texture tex : tileTextures) {
-            if (tex != null && !tex.isDisposed()) {
+            if (tex != null) {
                 tex.dispose();
             }
         }
     }
 
-    @Override public void resize(int width, int height) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int width, int height) {}
+
+    @Override
+    public void pause() {}
+
+    @Override
+    public void resume() {}
+
+    @Override
+    public void hide() {}
 }
