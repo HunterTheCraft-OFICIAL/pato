@@ -26,9 +26,6 @@ public enum TileType {
         this.buildable = buildable;
     }
 
-    /**
-     * Retorna o caminho relativo do asset com base no tipo.
-     */
     public String getAssetPath() {
         if (isWater()) {
             return "tiles_hydric/" + key + ".png";
@@ -36,9 +33,6 @@ public enum TileType {
         return "tiles/" + key + ".png";
     }
 
-    /**
-     * Verifica se este tile é de água (deve ser renderizado com alpha, por cima do terreno).
-     */
     public boolean isWater() {
         return this == RIO_RETO_V || this == RIO_CURVA_NE ||
                this == LAGO_G || this == FOZ_N ||
