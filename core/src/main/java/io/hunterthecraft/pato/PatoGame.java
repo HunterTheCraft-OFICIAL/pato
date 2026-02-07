@@ -3,34 +3,39 @@ package io.hunterthecraft.pato;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.hunterthecraft.pato.screen.SplashScreen;
-import io.hunterthecraft.pato.screen.ErrorScreen;
+import io.hunterthecraft.pato.screen.BugCenterScreen;
+import io.hunterthecraft.pato.screen.StartupScreen;
 
 public class PatoGame extends Game {
-    public SpriteBatch batch;
 
     @Override
     public void create() {
-        // Handler global de erros
+        // Handler global de erros: captura qualquer exceção não tratada
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            Gdx.app.error("CRASH", "Unhandled exception", throwable);
-            String message = throwable.toString();
-            setScreen(new ErrorScreen(PatoGame.this, message));
+            Gdx.app.error("CRASH", "Erro não tratado", throwable);
+            String log = throwable.toString() + "\n" + getStackTrace(throwable);
+            setScreen(new BugCenterScreen(PatoGame.this, log));
         });
 
-        batch = new SpriteBatch();
-        Gdx.app.log("PatoGame", "Iniciando SplashScreen...");
+        // Inicia com a tela de startup (não depende de assets externos)
         try {
-            setScreen(new SplashScreen(this));
+            setScreen(new StartupScreen(this));
         } catch (Exception e) {
-            Gdx.app.error("PatoGame", "Falha ao iniciar SplashScreen", e);
-            setScreen(new ErrorScreen(this, e.toString()));
+            Gdx.app.error("PatoGame", "Falha crítica na inicialização", e);
+            setScreen(new BugCenterScreen(this, e.toString()));
         }
+    }
+
+    private String getStackTrace(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement element : t.getStackTrace()) {
+            sb.append(element.toString()).append("\n");
+        }
+        return sb.toString();
     }
 
     @Override
     public void dispose() {
-        batch.dispose();
+        // Nada a descartar aqui — cada tela gerencia seus próprios recursos
     }
 }
