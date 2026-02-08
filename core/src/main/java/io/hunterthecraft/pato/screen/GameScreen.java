@@ -2,10 +2,9 @@
 package io.hunterthecraft.pato.screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -25,16 +24,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     private GlyphLayout layout;
     private WorldData world;
     private Texture[] tileTextures;
+    private Texture whitePixel; // ← usado para desenhar retângulos
 
     // Câmera
-    private OrthographicCamera camera;
     private ScreenViewport viewport;
-
-    // Interação
     private float zoom = 1.0f;
     private Vector2 panOffset = new Vector2();
-    private boolean isPanning = false;
-    private Vector2 panStart = new Vector2();
 
     // Pop-up
     private TileType selectedTile = null;
@@ -47,21 +42,27 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     }
 
     @Override
-    public void show() {        batch = new SpriteBatch();
+    public void show() {
+        batch = new SpriteBatch();
         font = new BitmapFont();
         font.getData().setScale(1.0f);
         layout = new GlyphLayout();
+        // Cria textura branca 1x1 para desenhar formas
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        whitePixel = new Texture(pixmap);
+        pixmap.dispose();
 
-        camera = new OrthographicCamera();
-        viewport = new ScreenViewport(camera);
+        viewport = new ScreenViewport();
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        // Carrega texturas
+        // Carrega texturas dos biomas
         tileTextures = new Texture[2];
         tileTextures[0] = new Texture(world.biomeA.getAssetPath());
         tileTextures[1] = new Texture(world.biomeB.getAssetPath());
 
-        // Configura GestureDetector
+        // Configura input
         GestureDetector detector = new GestureDetector(this);
         Gdx.input.setInputProcessor(detector);
     }
@@ -69,14 +70,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     @Override
     public void render(float delta) {
         // Atualiza câmera
-        camera.position.set(panOffset.x, panOffset.y, 0);
-        camera.zoom = 1.0f / zoom;
-        camera.update();
-        batch.setProjectionMatrix(camera.combined);
+        viewport.getCamera().position.set(panOffset.x, panOffset.y, 0);
+        viewport.getCamera().zoom = 1.0f / zoom;
+        viewport.getCamera().update();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
 
-        // Fundo
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
-
         batch.begin();
 
         int tileSize = 128;
@@ -96,14 +95,14 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         if (popupOpen && selectedTile != null) {
             float px = offsetX + selectedX * tileSize;
             float py = offsetY + selectedY * tileSize + tileSize;
-            // Fundo semi-transparente
-            batch.setColor(0, 0, 0, 0.7f);
-            batch.draw(batch.getTexture(), px, py, 200, 100);
+
+            // Fundo da pop-up            batch.setColor(0, 0, 0, 0.7f);
+            batch.draw(whitePixel, px, py, 200, 100);
             batch.setColor(1, 1, 1, 1);
 
             // Texto
             font.setColor(Color.WHITE);
-            layout.setText(font, "Bioma: " + selectedTile.name);
+            layout.setText(font, "Bioma: " + selectedTile.toString()); // ← corrigido
             font.draw(batch, layout, px + 10, py + 80);
 
             layout.setText(font, String.format("Coord: (%d, %d)", selectedX, selectedY));
@@ -120,16 +119,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     // --- GestureDetector callbacks ---
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        if (pointer == 0) {
-            isPanning = true;
-            panStart.set(x, y);
-        }
         return false;
     }
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
-        // Converte coordenadas da tela para mundo
         Vector2 worldPos = viewport.unproject(new Vector2(x, y));
         int tileSize = 128;
         float offsetX = -world.width * tileSize / 2f;
@@ -146,18 +140,26 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         return false;
     }
+
+    @Override
+    public boolean longPress(float x, float y) {
+        return false;
+    }
+    @Override
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
+
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
-        if (isPanning) {
-            panOffset.add(-deltaX * zoom, deltaY * zoom); // inverte Y
-        }
+        panOffset.add(-deltaX * zoom, deltaY * zoom); // inverte Y
         return false;
     }
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        float zoomFactor = distance / initialDistance;
-        zoom *= zoomFactor;
+        float factor = distance / initialDistance;
+        zoom *= factor;
         zoom = Math.max(0.5f, Math.min(3.0f, zoom));
         return false;
     }
@@ -165,6 +167,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     @Override
     public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
         return false;
+    }
+
+    @Override
+    public void pinchStop() {
+        // Método obrigatório do GestureListener
     }
 
     @Override
@@ -178,10 +185,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
 
     @Override
     public void dispose() {
+        if (whitePixel != null) whitePixel.dispose();
         if (tileTextures != null) {
-            for (Texture tex : tileTextures) {
-                if (tex != null) tex.dispose();
-            }
+            for (Texture t : tileTextures) if (t != null) t.dispose();
         }
         if (batch != null) batch.dispose();
         if (font != null) font.dispose();
