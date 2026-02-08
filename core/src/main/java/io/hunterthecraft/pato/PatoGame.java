@@ -15,8 +15,9 @@ public class PatoGame extends Game {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        font = new BitmapFont();
+        font = new BitmapFont(); // usa fonte embutida do LibGDX
         font.setColor(Color.WHITE);
+        font.getData().setScale(2.0f); // aumenta o tamanho
     }
 
     @Override
@@ -24,7 +25,10 @@ public class PatoGame extends Game {
         ScreenUtils.clear(0, 0, 0.2f, 1); // fundo azul escuro
         
         batch.begin();
-        font.draw(batch, "PATO FUNCIONANDO!", 100, Gdx.graphics.getHeight() - 100);
+        // Posição segura: centro da tela
+        float x = Gdx.graphics.getWidth() / 2f;
+        float y = Gdx.graphics.getHeight() / 2f;
+        font.draw(batch, "PATO VIVO!", x, y);
         batch.end();
     }
 
