@@ -49,24 +49,24 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         font = new BitmapFont();
         font.getData().setScale(1.0f);        layout = new GlyphLayout();
 
-        // Cria textura branca 1x1 para desenhar formas
+        // Textura branca 1x1
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whitePixel = new Texture(pixmap);
         pixmap.dispose();
 
-        // Configura câmera e viewport
+        // Câmera
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        // Carrega texturas dos biomas
+        // Carrega biomas
         tileTextures = new Texture[2];
         tileTextures[0] = new Texture(world.biomeA.getAssetPath());
         tileTextures[1] = new Texture(world.biomeB.getAssetPath());
 
-        // Configura input
+        // Input
         GestureDetector detector = new GestureDetector(this);
         Gdx.input.setInputProcessor(detector);
     }
@@ -75,13 +75,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public void render(float delta) {
         // Atualiza câmera
         camera.position.set(panOffset.x, panOffset.y, 0);
-        camera.zoom = zoom; // ← ACESSO DIRETO AO ZOOM
+        camera.zoom = zoom;
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // Limpa tela
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
-
         batch.begin();
 
         int tileSize = 128;
@@ -96,26 +94,22 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                 batch.draw(tex, offsetX + x * tileSize, offsetY + y * tileSize, tileSize, tileSize);
             }
         }
+
         // Pop-up
-        if (popupOpen && selectedTile != null) {
-            float px = offsetX + selectedX * tileSize;
+        if (popupOpen && selectedTile != null) {            float px = offsetX + selectedX * tileSize;
             float py = offsetY + selectedY * tileSize + tileSize;
 
-            // Fundo semi-transparente
             batch.setColor(0, 0, 0, 0.7f);
             batch.draw(whitePixel, px, py, 200, 100);
             batch.setColor(1, 1, 1, 1);
 
-            // Texto: Bioma
             font.setColor(Color.WHITE);
             layout.setText(font, "Bioma: " + selectedTile.toString());
             font.draw(batch, layout, px + 10, py + 80);
 
-            // Texto: Coordenadas
             layout.setText(font, String.format("Coord: (%d, %d)", selectedX, selectedY));
             font.draw(batch, layout, px + 10, py + 60);
 
-            // Botão X
             layout.setText(font, "✕");
             font.draw(batch, layout, px + 180, py + 90);
         }
@@ -123,14 +117,14 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         batch.end();
     }
 
-    // --- GestureDetector callbacks (todos obrigatórios) ---
+    // --- GestureDetector callbacks ---
     @Override public boolean touchDown(float x, float y, int pointer, int button) { return false; }
-    
+
     @Override
     public boolean tap(float x, float y, int count, int button) {
         Vector2 screenPos = new Vector2(x, y);
         Vector2 worldPos = viewport.unproject(screenPos);
-        
+
         int tileSize = 128;
         float offsetX = -world.width * tileSize / 2f;
         float offsetY = -world.height * tileSize / 2f;
@@ -139,16 +133,21 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         int tileY = (int) ((worldPos.y - offsetY) / tileSize);
 
         if (tileX >= 0 && tileX < world.width && tileY >= 0 && tileY < world.height) {
-            selectedX = tileX;
-            selectedY = tileY;
-            selectedTile = world.getTileAt(tileX, tileY);
-            popupOpen = true;
+            // Fecha se clicar no mesmo tile
+            if (popupOpen && selectedX == tileX && selectedY == tileY) {
+                popupOpen = false;
+            } else {
+                selectedX = tileX;
+                selectedY = tileY;
+                selectedTile = world.getTileAt(tileX, tileY);
+                popupOpen = true;
+            }
         }
         return false;
     }
     @Override public boolean longPress(float x, float y) { return false; }
     @Override public boolean fling(float velocityX, float velocityY, int button) { return false; }
-    
+
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
         panOffset.add(-deltaX * zoom, deltaY * zoom); // inverte Y
@@ -156,12 +155,13 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     }
 
     @Override public boolean panStop(float x, float y, int pointer, int button) { return false; }
-    
+
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        float factor = distance / initialDistance;
-        zoom *= factor;
-        zoom = Math.max(0.5f, Math.min(3.0f, zoom)); // limita zoom
+        // CORREÇÃO: afastar dedos = zoom in (aumentar)
+        float delta = distance - initialDistance;
+        zoom += delta * 0.005f; // sensibilidade ajustável
+        zoom = Math.max(0.5f, Math.min(3.0f, zoom)); // limites
         return false;
     }
 
@@ -181,9 +181,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public void dispose() {
         if (whitePixel != null) whitePixel.dispose();
         if (tileTextures != null) {
-            for (Texture t : tileTextures) {
-                if (t != null) t.dispose();
-            }
+            for (Texture t : tileTextures) if (t != null) t.dispose();
         }
         if (batch != null) batch.dispose();
         if (font != null) font.dispose();
