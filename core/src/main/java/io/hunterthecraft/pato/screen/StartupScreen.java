@@ -34,15 +34,14 @@ public class StartupScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0.2f, 1);
 
-        // Atualiza progresso
         timer += delta;
         if (progress < 1.0f) {
-            progress = Math.min(1.0f, timer / 2.0f); // 2 segundos para 100%
+            progress = Math.min(1.0f, timer / 2.0f);
         }
 
         batch.begin();
 
-        // Logo LibGDX (topo)
+        // Logo LibGDX
         font.setColor(Color.LIGHT_GRAY);
         layout.setText(font, "Logo LibGDX");
         font.draw(batch, layout, 20, Gdx.graphics.getBackBufferHeight() - 20);
@@ -54,37 +53,19 @@ public class StartupScreen implements Screen {
         float y = Gdx.graphics.getBackBufferHeight() / 2f + layout.height / 2f;
         font.draw(batch, layout, x, y);
 
-        // Barra de progresso
-        float barWidth = Gdx.graphics.getBackBufferWidth() - 80;
-        float barX = 40;
-        float barY = Gdx.graphics.getBackBufferHeight() / 2f - 40;
-        // Fundo da barra
-        drawRect(batch, barX, barY, barWidth, 16, Color.DARK_GRAY);
-        // Progresso
-        drawRect(batch, barX, barY, barWidth * progress, 16, Color.WHITE);
-
-        // % texto
-        font.setColor(Color.WHITE);
-        String percent = String.format("%.0f%%", progress * 100);
-        layout.setText(font, percent);
-        font.draw(batch, layout, 
-                  barX + barWidth / 2f - layout.width / 2f, 
-                  barY - 20);
+        // Progresso como texto (sem barra gráfica)
+        font.setColor(Color.GREEN);
+        String status = String.format("Carregando... %.0f%%", progress * 100);
+        layout.setText(font, status);
+        float px = Gdx.graphics.getBackBufferWidth() / 2f - layout.width / 2f;
+        float py = Gdx.graphics.getBackBufferHeight() / 2f - 50;
+        font.draw(batch, layout, px, py);
 
         batch.end();
 
-        // Após 2s, vai para o menu
         if (timer >= 2.0f) {
             game.setScreen(new MainMenuScreen(game));
         }
-    }
-
-    // Desenha um retângulo sólido sem texturas
-    private void drawRect(SpriteBatch batch, float x, float y, float width, float height, Color color) {
-        if (width <= 0) return;
-        batch.setColor(color);
-        batch.draw(batch.getTexture(), x, y, width, height);
-        batch.setColor(Color.WHITE);
     }
 
     @Override public void resize(int width, int height) {}

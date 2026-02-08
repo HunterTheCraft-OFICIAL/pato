@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import io.hunterthecraft.pato.screen.StartupScreen; // ← IMPORT ESSENCIAL
 
 public class PatoGame extends Game {
     private SpriteBatch batch;
@@ -29,7 +30,6 @@ public class PatoGame extends Game {
         timer += Gdx.graphics.getDeltaTime();
         
         if (timer < 1.0f) {
-            // Tela 0: "PATO FUNCIONANDO!" por 1 segundo
             ScreenUtils.clear(0, 0, 0.2f, 1);
             String text = "PATO FUNCIONANDO!";
             layout.setText(font, text);
@@ -39,7 +39,6 @@ public class PatoGame extends Game {
             font.draw(batch, layout, x, y);
             batch.end();
         } else {
-            // Após 1s, vai para StartupScreen
             setScreen(new StartupScreen(this));
         }
     }
