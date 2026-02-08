@@ -20,30 +20,30 @@ public class PatoGame extends Game {
         font = new BitmapFont();
         font.setColor(Color.WHITE);
         font.getData().setScale(2.5f);
-        layout = new GlyphLayout(); // ← usado para medir texto
+        layout = new GlyphLayout();
     }
 
     @Override
     public void render() {
-        ScreenUtils.clear(0, 0, 0.2f, 1); // fundo azul escuro
+        ScreenUtils.clear(0, 0, 0.2f, 1);
 
         String text = "PATO FUNCIONANDO!";
-        layout.setText(font, text); // ← mede o texto
+        layout.setText(font, text);
 
         int w = Gdx.graphics.getBackBufferWidth();
         int h = Gdx.graphics.getBackBufferHeight();
 
-        float x = w / 2f - layout.width / 2;
-        float y = h / 2f + layout.height / 2; // baseline
+        float x = w / 2f - layout.width / 2f;
+        float y = h / 2f + layout.height / 2f;
 
         batch.begin();
         font.draw(batch, layout, x, y);
         batch.end();
     }
 
-    @がら
+    @Override
     public void dispose() {
-        batch.dispose();
-        font.dispose();
+        if (batch != null) batch.dispose();
+        if (font != null) font.dispose();
     }
 }
