@@ -13,6 +13,7 @@ public class PatoGame extends Game {
     private SpriteBatch batch;
     private BitmapFont font;
     private GlyphLayout layout;
+    private float timer = 0f;
 
     @Override
     public void create() {
@@ -25,20 +26,22 @@ public class PatoGame extends Game {
 
     @Override
     public void render() {
-        ScreenUtils.clear(0, 0, 0.2f, 1);
-
-        String text = "PATO FUNCIONANDO!";
-        layout.setText(font, text);
-
-        int w = Gdx.graphics.getBackBufferWidth();
-        int h = Gdx.graphics.getBackBufferHeight();
-
-        float x = w / 2f - layout.width / 2f;
-        float y = h / 2f + layout.height / 2f;
-
-        batch.begin();
-        font.draw(batch, layout, x, y);
-        batch.end();
+        timer += Gdx.graphics.getDeltaTime();
+        
+        if (timer < 1.0f) {
+            // Tela 0: "PATO FUNCIONANDO!" por 1 segundo
+            ScreenUtils.clear(0, 0, 0.2f, 1);
+            String text = "PATO FUNCIONANDO!";
+            layout.setText(font, text);
+            float x = Gdx.graphics.getBackBufferWidth() / 2f - layout.width / 2f;
+            float y = Gdx.graphics.getBackBufferHeight() / 2f + layout.height / 2f;
+            batch.begin();
+            font.draw(batch, layout, x, y);
+            batch.end();
+        } else {
+            // Após 1s, vai para StartupScreen
+            setScreen(new StartupScreen(this));
+        }
     }
 
     @Override
