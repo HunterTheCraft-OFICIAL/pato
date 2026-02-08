@@ -1,4 +1,4 @@
-// core/src/main/java/io/hunterthecraft/pato/screen/WorldLoadingScreen.java
+// core/src/io/hunterthecraft/pato/screen/WorldLoadingScreen.java
 package io.hunterthecraft.pato.screen;
 
 import com.badlogic.gdx.Gdx;
@@ -23,11 +23,21 @@ public class WorldLoadingScreen implements Screen {
 
         Gdx.app.postRunnable(() -> {
             try {
-                FileHandle file = Gdx.files.local("saves/current/world.json");
-                if (!file.exists()) {
-                    throw new RuntimeException("world.json não encontrado!");
+                FileHandle localFile = Gdx.files.local("saves/current/world.json");
+                
+                // Se não existir no armazenamento local, copia do assets
+                if (!localFile.exists()) {
+                    FileHandle assetFile = Gdx.files.internal("saves/current/world.json");
+                    if (!assetFile.exists()) {
+                        throw new RuntimeException("world.json não encontrado nem em assets!");
+                    }
+                    // Cria diretórios
+                    localFile.parent().mkdirs();
+                    // Copia do assets para local
+                    assetFile.copyTo(localFile);
                 }
-                WorldData world = json.fromJson(WorldData.class, file.readString());
+
+                WorldData world = json.fromJson(WorldData.class, localFile.readString());
                 game.setScreen(new GameScreen(game, world));
             } catch (Exception e) {
                 game.setScreen(new BugCenterScreen(game, e.toString()));
@@ -37,7 +47,7 @@ public class WorldLoadingScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0.1f, 0.1f, 0.2f, 1); // só fundo azul
+        ScreenUtils.clear(0.1f, 0.1f, 0.2f, 1);
     }
 
     @Override public void resize(int width, int height) {}
