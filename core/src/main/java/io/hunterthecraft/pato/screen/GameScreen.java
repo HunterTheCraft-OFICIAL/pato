@@ -24,7 +24,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     private GlyphLayout layout;
     private WorldData world;
     private Texture[] tileTextures;
-    private Texture whitePixel; // ← usado para desenhar retângulos
+    private Texture whitePixel;
 
     // Câmera
     private ScreenViewport viewport;
@@ -47,7 +47,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         font = new BitmapFont();
         font.getData().setScale(1.0f);
         layout = new GlyphLayout();
-        // Cria textura branca 1x1 para desenhar formas
+        // Textura branca 1x1
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
@@ -57,12 +57,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         viewport = new ScreenViewport();
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        // Carrega texturas dos biomas
+        // Carrega biomas
         tileTextures = new Texture[2];
         tileTextures[0] = new Texture(world.biomeA.getAssetPath());
         tileTextures[1] = new Texture(world.biomeB.getAssetPath());
 
-        // Configura input
+        // Input
         GestureDetector detector = new GestureDetector(this);
         Gdx.input.setInputProcessor(detector);
     }
@@ -71,7 +71,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public void render(float delta) {
         // Atualiza câmera
         viewport.getCamera().position.set(panOffset.x, panOffset.y, 0);
-        viewport.getCamera().zoom = 1.0f / zoom;
+        viewport.getCamera().zoom = zoom; // ← CORRIGIDO: zoom direto
         viewport.getCamera().update();
         batch.setProjectionMatrix(viewport.getCamera().combined);
 
@@ -82,7 +82,6 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         float offsetX = -world.width * tileSize / 2f;
         float offsetY = -world.height * tileSize / 2f;
 
-        // Renderiza grid
         for (int y = 0; y < world.height; y++) {
             for (int x = 0; x < world.width; x++) {
                 TileType tile = world.getTileAt(x, y);
@@ -91,24 +90,20 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             }
         }
 
-        // Pop-up
         if (popupOpen && selectedTile != null) {
             float px = offsetX + selectedX * tileSize;
             float py = offsetY + selectedY * tileSize + tileSize;
 
-            // Fundo da pop-up            batch.setColor(0, 0, 0, 0.7f);
+            batch.setColor(0, 0, 0, 0.7f);
             batch.draw(whitePixel, px, py, 200, 100);
             batch.setColor(1, 1, 1, 1);
-
-            // Texto
             font.setColor(Color.WHITE);
-            layout.setText(font, "Bioma: " + selectedTile.toString()); // ← corrigido
+            layout.setText(font, "Bioma: " + selectedTile.toString());
             font.draw(batch, layout, px + 10, py + 80);
 
             layout.setText(font, String.format("Coord: (%d, %d)", selectedX, selectedY));
             font.draw(batch, layout, px + 10, py + 60);
 
-            // Botão X
             layout.setText(font, "✕");
             font.draw(batch, layout, px + 180, py + 90);
         }
@@ -116,14 +111,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         batch.end();
     }
 
-    // --- GestureDetector callbacks ---
-    @Override
-    public boolean touchDown(float x, float y, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean tap(float x, float y, int count, int button) {
+    // --- GestureDetector callbacks (todos obrigatórios) ---
+    @Override public boolean touchDown(float x, float y, int pointer, int button) { return false; }
+    @Override public boolean tap(float x, float y, int count, int button) {
         Vector2 worldPos = viewport.unproject(new Vector2(x, y));
         int tileSize = 128;
         float offsetX = -world.width * tileSize / 2f;
@@ -140,40 +130,21 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         return false;
     }
-
-    @Override
-    public boolean longPress(float x, float y) {
+    @Override public boolean longPress(float x, float y) { return false; }
+    @Override public boolean fling(float velocityX, float velocityY, int button) { return false; }
+    @Override public boolean pan(float x, float y, float deltaX, float deltaY) {
+        panOffset.add(-deltaX * zoom, deltaY * zoom);
         return false;
     }
-    @Override
-    public boolean fling(float velocityX, float velocityY, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY) {
-        panOffset.add(-deltaX * zoom, deltaY * zoom); // inverte Y
-        return false;
-    }
-
-    @Override
-    public boolean zoom(float initialDistance, float distance) {
+    @Override public boolean panStop(float x, float y, int pointer, int button) { return false; } // ← ADICIONADO
+    @Override public boolean zoom(float initialDistance, float distance) {
         float factor = distance / initialDistance;
         zoom *= factor;
         zoom = Math.max(0.5f, Math.min(3.0f, zoom));
         return false;
     }
-
-    @Override
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
-        return false;
-    }
-
-    @Override
-    public void pinchStop() {
-        // Método obrigatório do GestureListener
-    }
-
+    @Override public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) { return false; }
+    @Override public void pinchStop() {} // ← mantido
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
