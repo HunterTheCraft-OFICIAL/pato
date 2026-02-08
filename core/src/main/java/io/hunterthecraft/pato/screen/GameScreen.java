@@ -35,7 +35,7 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
         batch.begin();
-        int tileSize = 64;
+        int tileSize = 128; // ← AJUSTADO PARA 128px (tamanho realista)
         float offsetX = (Gdx.graphics.getBackBufferWidth() - world.width * tileSize) / 2f;
         float offsetY = (Gdx.graphics.getBackBufferHeight() - world.height * tileSize) / 2f;
 
