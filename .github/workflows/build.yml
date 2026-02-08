@@ -53,7 +53,7 @@ jobs:
       - name: Artifact - Core JAR
         uses: actions/upload-artifact@v4
         with:
-          name: bin-core-jar
+          name: z-bin-core-jar
           path: core/build/libs/*.jar
 
       # =========================================================
@@ -62,20 +62,20 @@ jobs:
       - name: Debug - Root Directory (Full)
         uses: actions/upload-artifact@v4
         with:
-          name: debug-root-full
+          name: z-debug-root-full
           path: ./*
           include-hidden-files: true
 
       - name: Debug - Android Folder
         uses: actions/upload-artifact@v4
         with:
-          name: debug-android-folder
+          name: z-debug-android-folder
           path: android/*
 
       - name: Debug - Core Folder
         uses: actions/upload-artifact@v4
         with:
-          name: debug-core-folder
+          name: z-debug-core-folder
           path: core/*
 
       # ⚠️ As pastas abaixo estão comentadas porque não existem ou não são usadas
