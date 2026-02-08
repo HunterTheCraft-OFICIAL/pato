@@ -2,14 +2,15 @@
 package io.hunterthecraft.pato.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -17,7 +18,7 @@ import io.hunterthecraft.pato.PatoGame;
 import io.hunterthecraft.pato.data.TileType;
 import io.hunterthecraft.pato.model.WorldData;
 
-public class GameScreen implements Screen {
+public class GameScreen implements Screen, GestureDetector.GestureListener {
     private PatoGame game;
     private SpriteBatch batch;
     private BitmapFont font;
@@ -25,13 +26,15 @@ public class GameScreen implements Screen {
     private WorldData world;
     private Texture[] tileTextures;
 
-    // Câmera e interação
+    // Câmera
     private OrthographicCamera camera;
     private ScreenViewport viewport;
+
+    // Interação
     private float zoom = 1.0f;
-    private boolean isDragging = false;
-    private Vector2 dragStart = new Vector2();
-    private Vector2 lastTouch = new Vector2();
+    private Vector2 panOffset = new Vector2();
+    private boolean isPanning = false;
+    private Vector2 panStart = new Vector2();
 
     // Pop-up
     private TileType selectedTile = null;
@@ -44,12 +47,11 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void show() {
-        batch = new SpriteBatch();
+    public void show() {        batch = new SpriteBatch();
         font = new BitmapFont();
-        font.getData().setScale(1.0f);        layout = new GlyphLayout();
+        font.getData().setScale(1.0f);
+        layout = new GlyphLayout();
 
-        // Câmera
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
@@ -58,12 +60,16 @@ public class GameScreen implements Screen {
         tileTextures = new Texture[2];
         tileTextures[0] = new Texture(world.biomeA.getAssetPath());
         tileTextures[1] = new Texture(world.biomeB.getAssetPath());
+
+        // Configura GestureDetector
+        GestureDetector detector = new GestureDetector(this);
+        Gdx.input.setInputProcessor(detector);
     }
 
     @Override
     public void render(float delta) {
         // Atualiza câmera
-        camera.position.set(0, 0, 0);
+        camera.position.set(panOffset.x, panOffset.y, 0);
         camera.zoom = 1.0f / zoom;
         camera.update();
         batch.setProjectionMatrix(camera.combined);
@@ -71,16 +77,13 @@ public class GameScreen implements Screen {
         // Fundo
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
-        // Processamento de input
-        handleInput();
-
-        // Renderização
         batch.begin();
 
         int tileSize = 128;
         float offsetX = -world.width * tileSize / 2f;
         float offsetY = -world.height * tileSize / 2f;
 
+        // Renderiza grid
         for (int y = 0; y < world.height; y++) {
             for (int x = 0; x < world.width; x++) {
                 TileType tile = world.getTileAt(x, y);
@@ -93,9 +96,11 @@ public class GameScreen implements Screen {
         if (popupOpen && selectedTile != null) {
             float px = offsetX + selectedX * tileSize;
             float py = offsetY + selectedY * tileSize + tileSize;
+            // Fundo semi-transparente
+            batch.setColor(0, 0, 0, 0.7f);
+            batch.draw(batch.getTexture(), px, py, 200, 100);
+            batch.setColor(1, 1, 1, 1);
 
-            // Fundo da pop-up (retângulo branco semi-transparente)
-            drawRect(batch, px, py, 200, 100, new Color(0, 0, 0, 0.7f));
             // Texto
             font.setColor(Color.WHITE);
             layout.setText(font, "Bioma: " + selectedTile.name);
@@ -112,70 +117,54 @@ public class GameScreen implements Screen {
         batch.end();
     }
 
-    private void handleInput() {
-        // Zoom (simulado com tecla de volume ou botão virtual no futuro)
-        // Por enquanto, use dois dedos ou mantenha simples
-        if (Gdx.input.isTouched()) {
-            if (!isDragging) {
-                isDragging = true;
-                dragStart.set(Gdx.input.getX(), Gdx.input.getY());
-                lastTouch.set(dragStart);
-            } else {
-                float dx = Gdx.input.getX() - lastTouch.x;
-                float dy = Gdx.input.getY() - lastTouch.y;
-                camera.translate(-dx * zoom, dy * zoom); // inverte Y
-                lastTouch.set(Gdx.input.getX(), Gdx.input.getY());
-            }
-        } else {
-            isDragging = false;
+    // --- GestureDetector callbacks ---
+    @Override
+    public boolean touchDown(float x, float y, int pointer, int button) {
+        if (pointer == 0) {
+            isPanning = true;
+            panStart.set(x, y);
         }
-
-        // Zoom com roda do mouse (desktop) ou botões (mobile futuramente)
-        if (Gdx.input.getDeltaWheel() != 0) {
-            zoom += Gdx.input.getDeltaWheel() * 0.1f;
-            zoom = Math.max(0.5f, Math.min(3.0f, zoom));
-        }
-
-        // Clique em tile
-        if (Gdx.input.justTouched() && !isDragging) {
-            float touchX = Gdx.input.getX();
-            float touchY = Gdx.input.getY();
-
-            // Converte para coordenadas do mundo
-            Vector2 worldPos = viewport.unproject(new Vector2(touchX, touchY));
-            int tileSize = 128;
-            float offsetX = -world.width * tileSize / 2f;
-            float offsetY = -world.height * tileSize / 2f;
-            int tileX = (int) ((worldPos.x - offsetX) / tileSize);
-            int tileY = (int) ((worldPos.y - offsetY) / tileSize);
-
-            if (tileX >= 0 && tileX < world.width && tileY >= 0 && tileY < world.height) {
-                selectedX = tileX;
-                selectedY = tileY;
-                selectedTile = world.getTileAt(tileX, tileY);
-                popupOpen = true;
-            }
-
-            // Verifica clique no botão X
-            if (popupOpen) {
-                float px = offsetX + selectedX * tileSize;
-                float py = offsetY + selectedY * tileSize + tileSize;
-                if (touchX > px + 180 && touchX < px + 200 &&
-                    touchY > py + 80 && touchY < py + 100) {
-                    popupOpen = false;
-                }
-            }
-        }
+        return false;
     }
 
-    // Desenha um retângulo sólido sem textura
-    private void drawRect(SpriteBatch batch, float x, float y, float width, float height, Color color) {
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        batch.setColor(color);
-        batch.draw(batch.getTexture(), x, y, width, height);
-        batch.setColor(Color.WHITE);
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+    @Override
+    public boolean tap(float x, float y, int count, int button) {
+        // Converte coordenadas da tela para mundo
+        Vector2 worldPos = viewport.unproject(new Vector2(x, y));
+        int tileSize = 128;
+        float offsetX = -world.width * tileSize / 2f;
+        float offsetY = -world.height * tileSize / 2f;
+
+        int tileX = (int) ((worldPos.x - offsetX) / tileSize);
+        int tileY = (int) ((worldPos.y - offsetY) / tileSize);
+
+        if (tileX >= 0 && tileX < world.width && tileY >= 0 && tileY < world.height) {
+            selectedX = tileX;
+            selectedY = tileY;
+            selectedTile = world.getTileAt(tileX, tileY);
+            popupOpen = true;
+        }
+        return false;
+    }
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY) {
+        if (isPanning) {
+            panOffset.add(-deltaX * zoom, deltaY * zoom); // inverte Y
+        }
+        return false;
+    }
+
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
+        float zoomFactor = distance / initialDistance;
+        zoom *= zoomFactor;
+        zoom = Math.max(0.5f, Math.min(3.0f, zoom));
+        return false;
+    }
+
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
     }
 
     @Override
@@ -194,6 +183,7 @@ public class GameScreen implements Screen {
                 if (tex != null) tex.dispose();
             }
         }
-        if (batch != null) batch.dispose();        if (font != null) font.dispose();
+        if (batch != null) batch.dispose();
+        if (font != null) font.dispose();
     }
 }
