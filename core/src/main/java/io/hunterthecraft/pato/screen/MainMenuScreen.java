@@ -49,7 +49,8 @@ public class MainMenuScreen implements Screen {
         font.draw(batch, layout, btn1X, btn1Y);
         checkButtonTap(btn1X, btn1Y - layout.height, layout.width, layout.height + 10, () -> {
             // Futuro: GameLoadingScreen
-            game.setScreen(new BugCenterScreen(game, "Jogo ainda não implementado."));
+            game.setScreen(new WorldLoadingScreen(game));
+            //game.setScreen(new BugCenterScreen(game, "Jogo ainda não implementado."));
         });
 
         // Botão 2: Sair

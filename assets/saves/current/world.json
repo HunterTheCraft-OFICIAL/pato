@@ -1,0 +1,9 @@
+{
+  "name": "Mundo Xadrez",
+  "seed": 42,
+  "version": "0.1",
+  "width": 5,
+  "height": 5,
+  "biomeA": "AMAZONIA",
+  "biomeB": "CERRADO"
+}
