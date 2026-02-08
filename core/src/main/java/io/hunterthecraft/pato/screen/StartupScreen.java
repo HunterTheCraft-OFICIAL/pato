@@ -28,7 +28,7 @@ public class StartupScreen implements Screen {
     public void show() {
         batch = new SpriteBatch();
         viewport = new FitViewport(800, 480);
-        font = new BitmapFont();
+        font = new BitmapFont(); // usa fonte embutida
         font.setColor(Color.WHITE);
         font.getData().setScale(3.0f);
         layout = new GlyphLayout();
@@ -44,39 +44,33 @@ public class StartupScreen implements Screen {
 
         // Logo LibGDX (topo)
         font.setColor(Color.LIGHT_GRAY);
-        font.draw(batch, "Logo LibGDX", 20, viewport.getWorldHeight() - 20);
+        layout.setText(font, "Logo LibGDX");
+        font.draw(batch, layout, 20, Gdx.graphics.getHeight() - 20);
 
         // Título "Pato"
         font.setColor(Color.WHITE);
         layout.setText(font, "Pato");
-        float x = (viewport.getWorldWidth() - layout.width) / 2;
-        float y = viewport.getWorldHeight() / 2 + layout.height / 2;
-        font.draw(batch, "Pato", x, y);
+        float x = (Gdx.graphics.getWidth() - layout.width) / 2;
+        float y = Gdx.graphics.getHeight() / 2 + layout.height / 2;
+        font.draw(batch, layout, x, y);
 
-        // Barra de progresso
-        float barWidth = viewport.getWorldWidth() - 80;
-        float barX = 40;
-        float barY = viewport.getWorldHeight() / 2 - 40;
-        batch.setColor(Color.GRAY);
-        batch.draw(batch.getTexture(), barX, barY, barWidth, 16);
-        batch.setColor(Color.WHITE);
-        batch.draw(batch.getTexture(), barX, barY, barWidth * progress, 16);
-
-        // % texto
-        font.setColor(Color.WHITE);
-        font.draw(batch, String.format("%.0f%%", progress * 100), 
-                  barX + barWidth / 2 - font.getBounds("00%").width / 2, barY - 25);
+        // Simples texto de progresso (sem barra gráfica por enquanto)
+        font.setColor(Color.GREEN);
+        layout.setText(font, String.format("Carregando... %.0f%%", progress * 100));
+        font.draw(batch, layout, 
+                  (Gdx.graphics.getWidth() - layout.width) / 2, 
+                  Gdx.graphics.getHeight() / 2 - 50);
 
         batch.end();
 
-        // Simula carregamento (substitua por AssetManager depois)
+        // Simula carregamento
         if (!loadingDone) {
             progress += delta * 0.2f;
             if (progress >= 1.0f) {
                 progress = 1.0f;
                 loadingDone = true;
-                // Aqui você troca para MainMenuScreen
-                Gdx.app.postRunnable(() -> game.setScreen(new MainMenuScreen(game)));
+                // Por enquanto, não vai para MainMenuScreen (ainda não existe)
+                // Em breve, você adicionará essa transição
             }
         }
     }
