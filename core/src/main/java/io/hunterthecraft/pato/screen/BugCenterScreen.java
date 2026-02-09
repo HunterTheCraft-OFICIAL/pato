@@ -19,6 +19,10 @@ public class BugCenterScreen implements Screen {
     private String fullLog;
     private boolean touched = false;
 
+    // Feedback de cópia
+    private String copySuccessMessage = null;
+    private float copyMessageTimer = 0f;
+
     public BugCenterScreen(PatoGame game, String log) {
         this.game = game;
         this.fullLog = log != null ? log : "Sem logs disponíveis.";
@@ -34,8 +38,15 @@ public class BugCenterScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0.2f, 0.0f, 0.0f, 1); // vermelho escuro
+        // Atualiza temporizador da mensagem
+        if (copySuccessMessage != null) {
+            copyMessageTimer -= delta;
+            if (copyMessageTimer <= 0) {
+                copySuccessMessage = null;
+            }
+        }
 
+        ScreenUtils.clear(0.2f, 0.0f, 0.0f, 1);
         batch.begin();
 
         // Título
@@ -43,11 +54,12 @@ public class BugCenterScreen implements Screen {
         layout.setText(font, "❌ BUG CENTER");
         font.draw(batch, layout, 20, Gdx.graphics.getBackBufferHeight() - 30);
 
-        // Área de logs (texto exato que você pediu)
+        // Área de logs
         font.setColor(Color.WHITE);
         String logText = "Todos os logs gerados,\nmesmo que o relevante para\ntemos visão total";
         layout.setText(font, logText, Color.WHITE, Gdx.graphics.getBackBufferWidth() - 200, 0, true);
         font.draw(batch, layout, 180, Gdx.graphics.getBackBufferHeight() - 80);
+
         // Botão: Menu
         font.setColor(Color.WHITE);
         layout.setText(font, "Menu");
@@ -65,6 +77,9 @@ public class BugCenterScreen implements Screen {
         checkButtonTap(btnX, copyY - layout.height, layout.width, layout.height + 10, () -> {
             Clipboard clipboard = Gdx.app.getClipboard();
             clipboard.setContents(fullLog);
+            // Mostra mensagem por 3 segundos
+            copySuccessMessage = "Copiado com sucesso!";
+            copyMessageTimer = 3.0f;
         });
 
         // Botão: Sair
@@ -74,6 +89,14 @@ public class BugCenterScreen implements Screen {
         checkButtonTap(btnX, exitY - layout.height, layout.width, layout.height + 10, () -> {
             Gdx.app.exit();
         });
+
+        // Mensagem de sucesso no centro
+        if (copySuccessMessage != null) {
+            font.setColor(Color.GREEN);
+            layout.setText(font, copySuccessMessage);
+            float msgX = (Gdx.graphics.getBackBufferWidth() - layout.width) / 2f;
+            float msgY = Gdx.graphics.getBackBufferHeight() / 2f;
+            font.draw(batch, layout, msgX, msgY);        }
 
         batch.end();
     }
@@ -96,6 +119,7 @@ public class BugCenterScreen implements Screen {
     @Override public void resume() {}
     @Override public void hide() {}
     @Override public void dispose() {
-        if (batch != null) batch.dispose();        if (font != null) font.dispose();
+        if (batch != null) batch.dispose();
+        if (font != null) font.dispose();
     }
 }
