@@ -145,7 +145,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             chunkManager.unloadDistantChunks(centerChunkX, centerChunkY);
         } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro ao renderizar chunks", e);
-            throw e; // será capturado no render()        }
+            throw e;        }
     }
 
     private void drawPauseButton() {
