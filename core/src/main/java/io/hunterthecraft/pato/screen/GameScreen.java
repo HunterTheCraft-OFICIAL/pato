@@ -27,60 +27,51 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     private Texture[] tileTextures;
     private Texture whitePixel;
 
-    // Câmera
     private OrthographicCamera camera;
     private ScreenViewport viewport;
     private float zoom = 1.0f;
     private Vector2 panOffset = new Vector2();
 
-    // Chunks
     private ChunkManager chunkManager = new ChunkManager();
     private static final int TILE_SIZE = 128;
 
-    // Pop-up de tile
     private TileType selectedTile = null;
     private int selectedX = -1, selectedY = -1;
     private boolean popupOpen = false;
 
-    // Menu de pausa
     private boolean pauseMenuOpen = false;
     private boolean settingsOpen = false;
 
     public GameScreen(PatoGame game) {
-        this.game = game;    }
+        this.game = game;
+    }
 
     @Override
-    public void show() {
-        batch = new SpriteBatch();
+    public void show() {        batch = new SpriteBatch();
         font = new BitmapFont();
         font.getData().setScale(1.0f);
         layout = new GlyphLayout();
 
-        // Textura branca 1x1
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whitePixel = new Texture(pixmap);
         pixmap.dispose();
 
-        // Câmera
         camera = new OrthographicCamera();
         viewport = new ScreenViewport(camera);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        // Carrega biomas
         tileTextures = new Texture[2];
         tileTextures[0] = new Texture("tiles/debug_amazonia.png");
         tileTextures[1] = new Texture("tiles/debug_cerrado.png");
 
-        // Input
         GestureDetector detector = new GestureDetector(this);
         Gdx.input.setInputProcessor(detector);
     }
 
     @Override
     public void render(float delta) {
-        // Atualiza câmera
         camera.position.set(panOffset.x, panOffset.y, 0);
         camera.zoom = zoom;
         camera.update();
@@ -89,13 +80,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
         batch.begin();
 
-        // Renderiza chunks visíveis
         renderChunks();
 
-        // Pop-up de tile
         if (popupOpen && selectedTile != null) {
             float px = selectedX * TILE_SIZE;
             float py = selectedY * TILE_SIZE + TILE_SIZE;
+
             batch.setColor(0, 0, 0, 0.7f);
             batch.draw(whitePixel, px, py, 200, 100);
             batch.setColor(1, 1, 1, 1);
@@ -106,15 +96,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
 
             layout.setText(font, String.format("Coord: (%d, %d)", selectedX, selectedY));
             font.draw(batch, layout, px + 10, py + 60);
-
             layout.setText(font, "✕");
             font.draw(batch, layout, px + 180, py + 90);
         }
 
-        // Botão de pausa (canto superior direito)
         drawPauseButton();
 
-        // Menus
         if (pauseMenuOpen && !settingsOpen) {
             drawPauseMenu();
         } else if (settingsOpen) {
@@ -125,31 +112,25 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     }
 
     private void renderChunks() {
-        // Calcula posição central em coordenadas de chunk
         int centerChunkX = (int) (camera.position.x / (Chunk.SIZE * TILE_SIZE));
         int centerChunkY = (int) (camera.position.y / (Chunk.SIZE * TILE_SIZE));
 
-        // Raio de renderização (3x3 chunks = 48x48 tiles)
         int radius = 2;
         for (int cy = centerChunkY - radius; cy <= centerChunkY + radius; cy++) {
             for (int cx = centerChunkX - radius; cx <= centerChunkX + radius; cx++) {
                 Chunk chunk = chunkManager.getChunk(cx, cy);
-                // Renderiza cada tile do chunk
                 for (int y = 0; y < Chunk.SIZE; y++) {
                     for (int x = 0; x < Chunk.SIZE; x++) {
                         TileType tile = chunk.getTile(x, y);
                         int globalX = cx * Chunk.SIZE + x;
                         int globalY = cy * Chunk.SIZE + y;
                         Texture tex = (tile == TileType.AMAZONIA) ? tileTextures[0] : tileTextures[1];
-                        batch.draw(tex, 
-                            globalX * TILE_SIZE, 
-                            globalY * TILE_SIZE, 
-                            TILE_SIZE, TILE_SIZE);
-                    }                }
+                        batch.draw(tex, globalX * TILE_SIZE, globalY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                }
             }
         }
 
-        // Descarrega chunks distantes
         chunkManager.unloadDistantChunks(centerChunkX, centerChunkY);
     }
 
@@ -164,18 +145,14 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         font.draw(batch, layout, btnX + 15, btnY + 35);
     }
 
-    private void drawPauseMenu() {
-        // Fundo escuro
-        batch.setColor(0, 0, 0, 0.6f);
+    private void drawPauseMenu() {        batch.setColor(0, 0, 0, 0.6f);
         batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setColor(1, 1, 1, 1);
 
-        // Título
         font.setColor(Color.YELLOW);
         layout.setText(font, "PAUSA");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 80);
 
-        // Botões
         font.setColor(Color.WHITE);
         layout.setText(font, "Continuar");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 120);
@@ -189,16 +166,16 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         layout.setText(font, "Sair");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
 
-        // Detecção de cliques
         if (Gdx.input.justTouched()) {
             float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
             if (touchY > 110 && touchY < 130) {
-                pauseMenuOpen = false; // Continuar
-            } else if (touchY > 150 && touchY < 170) {                game.setScreen(new MainMenuScreen(game)); // Menu Principal
+                pauseMenuOpen = false;
+            } else if (touchY > 150 && touchY < 170) {
+                game.setScreen(new MainMenuScreen(game));
             } else if (touchY > 190 && touchY < 210) {
-                settingsOpen = true; // Configurações
+                settingsOpen = true;
             } else if (touchY > 230 && touchY < 250) {
-                Gdx.app.exit(); // Sair
+                Gdx.app.exit();
             }
         }
     }
@@ -212,26 +189,24 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         layout.setText(font, "CONFIGURAÇÕES");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
 
-        // Placeholder
         font.setColor(Color.WHITE);
         layout.setText(font, "Zoom Sensitivity: 0.005");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 150);
 
         layout.setText(font, "Render Distance: 2 chunks");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 190);
-
-        // Botão Voltar
         layout.setText(font, "Voltar");
         font.draw(batch, layout, 100, 100);
 
-        // Clique em Voltar
         if (Gdx.input.justTouched() && Gdx.input.getY() < 150) {
             settingsOpen = false;
         }
     }
 
-    // --- GestureDetector callbacks ---
-    @Override public boolean touchDown(float x, float y, int pointer, int button) { return false; }
+    @Override
+    public boolean touchDown(float x, float y, int pointer, int button) {
+        return false;
+    }
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
@@ -243,12 +218,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         int tileX = (int) (worldPos.x / TILE_SIZE);
         int tileY = (int) (worldPos.y / TILE_SIZE);
 
-        // Fecha se clicar no mesmo tile        if (popupOpen && selectedX == tileX && selectedY == tileY) {
+        if (popupOpen && selectedX == tileX && selectedY == tileY) {
             popupOpen = false;
         } else {
             selectedX = tileX;
             selectedY = tileY;
-            // Recupera o tile do chunk
             int chunkX = tileX / Chunk.SIZE;
             int chunkY = tileY / Chunk.SIZE;
             Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
@@ -258,18 +232,27 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         return false;
     }
 
-    @Override public boolean longPress(float x, float y) { return false; }
-    @Override public boolean fling(float velocityX, float velocityY, int button) { return false; }
+    @Override
+    public boolean longPress(float x, float y) {
+        return false;
+    }
 
     @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY) {
-        if (!pauseMenuOpen && !settingsOpen) {
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY) {        if (!pauseMenuOpen && !settingsOpen) {
             panOffset.add(-deltaX * zoom, deltaY * zoom);
         }
         return false;
     }
 
-    @Override public boolean panStop(float x, float y, int pointer, int button) { return false; }
+    @Override
+    public boolean panStop(float x, float y, int pointer, int button) {
+        return false;
+    }
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
@@ -281,24 +264,34 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         return false;
     }
 
-    @Override public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) { return false; }
-    @Override public void pinchStop() {}
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
+    }
+
+    @Override
+    public void pinchStop() {}
 
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
 
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void pause() {}
+
+    @Override
+    public void resume() {}
+
+    @Override
+    public void hide() {}
+
     @Override
     public void dispose() {
         if (whitePixel != null) whitePixel.dispose();
         if (tileTextures != null) {
             for (Texture t : tileTextures) if (t != null) t.dispose();
         }
-        if (batch != null) batch.dispose();
-        if (font != null) font.dispose();
+        if (batch != null) batch.dispose();        if (font != null) font.dispose();
     }
 }
