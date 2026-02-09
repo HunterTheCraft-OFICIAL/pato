@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.hunterthecraft.pato.PatoGame;
@@ -46,8 +47,8 @@ public class GameScreen implements Screen, InputController.InputListener {
             camera = new OrthographicCamera();
             viewport = new ScreenViewport(camera);
             viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-
-            worldRenderer = new WorldRenderer(batch);            uiRenderer = new UiRenderer(batch);
+            worldRenderer = new WorldRenderer(batch);
+            uiRenderer = new UiRenderer(batch);
             inputController = new InputController(this);
 
             Gdx.input.setInputProcessor(new GestureDetector(inputController));
@@ -60,20 +61,17 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void render(float delta) {
         try {
-            // Atualiza câmera
             camera.position.set(panOffsetX, panOffsetY, 0);
             camera.zoom = zoom;
             camera.update();
 
             ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
-            // Renderiza mundo
             batch.begin();
             batch.setProjectionMatrix(camera.combined);
             worldRenderer.render(camera.position.x, camera.position.y, zoom);
             batch.end();
 
-            // Renderiza UI
             batch.begin();
             batch.setProjectionMatrix(viewport.getCamera().combined);
             uiRenderer.drawPauseButton();
@@ -94,23 +92,23 @@ public class GameScreen implements Screen, InputController.InputListener {
             }
             batch.end();
 
-            // Atualiza estado do input controller
             inputController.setPauseMenuOpen(pauseMenuOpen);
-            inputController.setSettingsOpen(settingsOpen);        } catch (Exception e) {
+            inputController.setSettingsOpen(settingsOpen);
+        } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro na renderização", e);
-            game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
-        }
+            game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));        }
     }
 
-    // --- InputController callbacks ---
     @Override
     public void onTileTapped(int screenX, int screenY) {
-        // Conversão para coordenadas do mundo
-        float worldX = (screenX - camera.position.x * camera.zoom) / (128 * camera.zoom);
-        float worldY = (screenY - camera.position.y * camera.zoom) / (128 * camera.zoom);
+        // Converte coordenadas de tela para mundo
+        float halfWidth = Gdx.graphics.getWidth() / 2f;
+        float halfHeight = Gdx.graphics.getHeight() / 2f;
+        float worldX = (screenX - halfWidth) / (128 * zoom) + camera.position.x;
+        float worldY = (halfHeight - screenY) / (128 * zoom) + camera.position.y;
         
-        int tileX = (int) worldX;
-        int tileY = (int) worldY;
+        int tileX = (int) Math.floor(worldX);
+        int tileY = (int) Math.floor(worldY);
 
         if (tileX < 0 || tileY < 0) return;
 
@@ -145,12 +143,29 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void onZoom(float delta) {
         zoom += delta;
-        zoom = Math.max(0.5f, Math.min(3.0f, zoom));    }
-
+        zoom = Math.max(0.5f, Math.min(3.0f, zoom));
+    }
     @Override
     public void onPauseButtonTapped() {
         pauseMenuOpen = true;
     }
 
-    // ... outros métodos (resize, pause, etc.) ...
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+    }
+
+    @Override
+    public void pause() {}
+    @Override
+    public void resume() {}
+    @Override
+    public void hide() {}
+
+    @Override
+    public void dispose() {
+        if (worldRenderer != null) worldRenderer.dispose();
+        if (uiRenderer != null) uiRenderer.dispose();
+        if (batch != null) batch.dispose();
+    }
 }

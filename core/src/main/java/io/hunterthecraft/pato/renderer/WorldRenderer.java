@@ -52,6 +52,10 @@ public class WorldRenderer implements Disposable {
         chunkManager.unloadDistantChunks(centerChunkX, centerChunkY);
     }
 
+    public ChunkManager getChunkManager() {
+        return chunkManager;
+    }
+
     @Override
     public void dispose() {
         if (tileTextures != null) {
