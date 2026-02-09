@@ -34,19 +34,29 @@ public class UiRenderer implements Disposable {
     }
 
     public void drawPauseButton() {
-        float btnX = Gdx.graphics.getWidth() - 60;
-        float btnY = Gdx.graphics.getHeight() - 60;
+        float size = 128; // Tamanho de um tile
+        float btnX = Gdx.graphics.getWidth() - size;
+        float btnY = Gdx.graphics.getHeight() - size;
+        
+        // Fundo do botão
         batch.setColor(0.2f, 0.2f, 0.3f, 0.8f);
-        batch.draw(whitePixel, btnX, btnY, 50, 50);
+        batch.draw(whitePixel, btnX, btnY, size, size);
+        
+        // Ícone grande
         batch.setColor(1, 1, 1, 1);
         font.setColor(Color.WHITE);
+        font.getData().setScale(4.0f); // Texto grande
         layout.setText(font, "⏸");
-        font.draw(batch, layout, btnX + 15, btnY + 35);
+        font.draw(batch, layout,             btnX + size/2f - layout.width/2f,
+            btnY + size/2f + layout.height/2f
+        );
+        font.getData().setScale(1.0f); // Restaura escala
     }
 
     public void drawTilePopup(int tileX, int tileY, TileType tileType) {
         float px = tileX * 128;
         float py = tileY * 128 + 128;
+
         batch.setColor(0, 0, 0, 0.7f);
         batch.draw(whitePixel, px, py, 200, 100);
         batch.setColor(1, 1, 1, 1);
@@ -86,8 +96,7 @@ public class UiRenderer implements Disposable {
     }
 
     public void drawSettingsMenu(
-        boolean invertScrollY,
-        boolean invertPinch,
+        boolean invertScrollY,        boolean invertPinch,
         float pinchSensitivity,
         float scrollSensitivity
     ) {
@@ -96,7 +105,8 @@ public class UiRenderer implements Disposable {
         batch.setColor(1, 1, 1, 1);
 
         font.setColor(Color.YELLOW);
-        layout.setText(font, "CONTROLES");        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
+        layout.setText(font, "CONTROLES");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
 
         int y = Gdx.graphics.getHeight() - 140;
 

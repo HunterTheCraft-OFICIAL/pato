@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.hunterthecraft.pato.PatoGame;
@@ -67,11 +68,13 @@ public class GameScreen implements Screen, InputController.InputListener {
 
             ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
+            // Renderiza mundo
             batch.begin();
             batch.setProjectionMatrix(camera.combined);
             worldRenderer.render(camera.position.x, camera.position.y, zoom);
             batch.end();
 
+            // Renderiza UI
             batch.begin();
             batch.setProjectionMatrix(viewport.getCamera().combined);
             uiRenderer.drawPauseButton();
@@ -93,22 +96,20 @@ public class GameScreen implements Screen, InputController.InputListener {
             batch.end();
 
             inputController.setPauseMenuOpen(pauseMenuOpen);
-            inputController.setSettingsOpen(settingsOpen);
-        } catch (Exception e) {
+            inputController.setSettingsOpen(settingsOpen);        } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro na renderização", e);
-            game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));        }
+            game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
+        }
     }
 
     @Override
     public void onTileTapped(int screenX, int screenY) {
         // Converte coordenadas de tela para mundo
-        float halfWidth = Gdx.graphics.getWidth() / 2f;
-        float halfHeight = Gdx.graphics.getHeight() / 2f;
-        float worldX = (screenX - halfWidth) / (128 * zoom) + camera.position.x;
-        float worldY = (halfHeight - screenY) / (128 * zoom) + camera.position.y;
+        Vector2 screenPos = new Vector2(screenX, screenY);
+        Vector2 worldPos = viewport.unproject(screenPos);
         
-        int tileX = (int) Math.floor(worldX);
-        int tileY = (int) Math.floor(worldY);
+        int tileX = (int) (worldPos.x / 128);
+        int tileY = (int) (worldPos.y / 128);
 
         if (tileX < 0 || tileY < 0) return;
 

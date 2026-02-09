@@ -47,7 +47,8 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        if (!pauseMenuOpen && !settingsOpen) {            if (x > Gdx.graphics.getWidth() - 60 && y > Gdx.graphics.getHeight() - 60) {
+        if (!pauseMenuOpen && !settingsOpen) {            // Botão ocupa 128x128 no canto inferior direito
+            if (x > Gdx.graphics.getWidth() - 128 && y > Gdx.graphics.getHeight() - 128) {
                 listener.onPauseButtonTapped();
                 return true;
             }
