@@ -3,15 +3,12 @@ package io.hunterthecraft.pato.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.ScreenUtils;
 import io.hunterthecraft.pato.PatoGame;
-import io.hunterthecraft.pato.model.WorldData;
 
 public class WorldLoadingScreen implements Screen {
     private PatoGame game;
-    private Json json;
 
     public WorldLoadingScreen(PatoGame game) {
         this.game = game;
@@ -19,35 +16,33 @@ public class WorldLoadingScreen implements Screen {
 
     @Override
     public void show() {
-        json = new Json();
-
+        // Carrega assets em background
         Gdx.app.postRunnable(() -> {
             try {
-                FileHandle localFile = Gdx.files.local("saves/current/world.json");
+                // Testa se os assets essenciais existem
+                Texture amazonia = new Texture("tiles/debug_amazonia.png");
+                Texture cerrado = new Texture("tiles/debug_cerrado.png");
                 
-                // Se não existir no armazenamento local, copia do assets
-                if (!localFile.exists()) {
-                    FileHandle assetFile = Gdx.files.internal("saves/current/world.json");
-                    if (!assetFile.exists()) {
-                        throw new RuntimeException("world.json não encontrado nem em assets!");
-                    }
-                    // Cria diretórios
-                    localFile.parent().mkdirs();
-                    // Copia do assets para local
-                    assetFile.copyTo(localFile);
-                }
+                // Libera as texturas (só testamos a existência)
+                amazonia.dispose();
+                cerrado.dispose();
 
-                WorldData world = json.fromJson(WorldData.class, localFile.readString());
-                game.setScreen(new GameScreen(game, world));
+                // Vai para o mundo infinito
+                game.setScreen(new GameScreen(game));
             } catch (Exception e) {
-                game.setScreen(new BugCenterScreen(game, e.toString()));
+                Gdx.app.error("WorldLoading", "Falha ao carregar assets", e);
+                game.setScreen(new BugCenterScreen(game, 
+                    "Erro ao carregar assets:\n" + e.getMessage()));
             }
         });
     }
 
     @Override
     public void render(float delta) {
+        // Tela de carregamento simples
         ScreenUtils.clear(0.1f, 0.1f, 0.2f, 1);
+        
+        // Opcional: adicionar texto "Carregando mundo..." depois
     }
 
     @Override public void resize(int width, int height) {}
