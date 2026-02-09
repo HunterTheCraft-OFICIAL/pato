@@ -8,7 +8,7 @@ public class Chunk {
     public final int chunkX, chunkY;
     private TileType[][] tiles = new TileType[SIZE][SIZE];
 
-    public Chunk(int chunkX, chunkY) {
+    public Chunk(int chunkX, int chunkY) { // ← CONFIRME: "int chunkY"
         this.chunkX = chunkX;
         this.chunkY = chunkY;
         generate();
@@ -17,10 +17,8 @@ public class Chunk {
     private void generate() {
         for (int y = 0; y < SIZE; y++) {
             for (int x = 0; x < SIZE; x++) {
-                // Coordenada global do tile
                 int globalX = chunkX * SIZE + x;
                 int globalY = chunkY * SIZE + y;
-                // Padrão xadrez baseado na posição global
                 tiles[x][y] = ((globalX + globalY) % 2 == 0) 
                     ? TileType.AMAZONIA 
                     : TileType.CERRADO;

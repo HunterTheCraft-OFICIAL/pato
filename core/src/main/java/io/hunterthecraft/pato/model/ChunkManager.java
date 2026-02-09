@@ -6,9 +6,9 @@ import java.util.Map;
 
 public class ChunkManager {
     private Map<String, Chunk> loadedChunks = new HashMap<>();
-    private static final int RENDER_RADIUS = 2; // chunks visíveis
+    private static final int RENDER_RADIUS = 2;
 
-    public Chunk getChunk(int chunkX, chunkY) {
+    public Chunk getChunk(int chunkX, int chunkY) { // ← CORRIGIDO: "int chunkY"
         String key = chunkX + "," + chunkY;
         return loadedChunks.computeIfAbsent(key, k -> new Chunk(chunkX, chunkY));
     }
