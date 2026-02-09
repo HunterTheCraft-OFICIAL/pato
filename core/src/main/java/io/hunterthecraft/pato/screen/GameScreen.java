@@ -68,15 +68,15 @@ public class GameScreen implements Screen, InputController.InputListener {
 
             ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
-            // Renderiza mundo
+            // Renderiza MUNDO (com câmera)
             batch.begin();
             batch.setProjectionMatrix(camera.combined);
             worldRenderer.render(camera.position.x, camera.position.y, zoom);
             batch.end();
 
-            // Renderiza UI
+            // Renderiza UI (coordenadas de tela fixas)
             batch.begin();
-            batch.setProjectionMatrix(viewport.getCamera().combined);
+            batch.setProjectionMatrix(new OrthographicCamera().combined);
             uiRenderer.drawPauseButton();
             
             if (popupOpen && selectedTile != null) {
@@ -104,7 +104,6 @@ public class GameScreen implements Screen, InputController.InputListener {
 
     @Override
     public void onTileTapped(int screenX, int screenY) {
-        // Converte coordenadas de tela para mundo
         Vector2 screenPos = new Vector2(screenX, screenY);
         Vector2 worldPos = viewport.unproject(screenPos);
         

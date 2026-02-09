@@ -34,28 +34,49 @@ public class UiRenderer implements Disposable {
     }
 
     public void drawPauseButton() {
-        float size = 128; // Tamanho de um tile
-        float btnX = Gdx.graphics.getWidth() - size;
-        float btnY = Gdx.graphics.getHeight() - size;
+        float size = 128;
+        float safeRight = Gdx.graphics.getSafeInsetRight();
+        float safeBottom = Gdx.graphics.getSafeInsetBottom();
         
-        // Fundo do botão
+        float btnX = Gdx.graphics.getWidth() - size - safeRight;
+        float btnY = Gdx.graphics.getHeight() - size - safeBottom;
+        
         batch.setColor(0.2f, 0.2f, 0.3f, 0.8f);
         batch.draw(whitePixel, btnX, btnY, size, size);
         
-        // Ícone grande
         batch.setColor(1, 1, 1, 1);
         font.setColor(Color.WHITE);
-        font.getData().setScale(4.0f); // Texto grande
-        layout.setText(font, "⏸");
-        font.draw(batch, layout,             btnX + size/2f - layout.width/2f,
+        font.getData().setScale(4.0f);
+        layout.setText(font, "⏸");        font.draw(batch, layout, 
+            btnX + size/2f - layout.width/2f,
             btnY + size/2f + layout.height/2f
         );
-        font.getData().setScale(1.0f); // Restaura escala
+        font.getData().setScale(1.0f);
     }
 
     public void drawTilePopup(int tileX, int tileY, TileType tileType) {
+        float safeRight = Gdx.graphics.getSafeInsetRight();
+        float safeTop = Gdx.graphics.getSafeInsetTop();
+        float safeBottom = Gdx.graphics.getSafeInsetBottom();
+        
+        // Posiciona a pop-up com segurança
         float px = tileX * 128;
-        float py = tileY * 128 + 128;
+        float py = tileY * 128 + 150;
+        
+        // Evita que fique sob a notch superior
+        if (py > Gdx.graphics.getHeight() - 120 - safeBottom) {
+            py = tileY * 128 - 20; // acima do tile
+        }
+        
+        // Evita que fique fora da direita
+        if (px > Gdx.graphics.getWidth() - 220 - safeRight) {
+            px = Gdx.graphics.getWidth() - 220 - safeRight;
+        }
+        
+        // Evita que fique fora da esquerda
+        if (px < 20 + safeTop) {
+            px = 20 + safeTop;
+        }
 
         batch.setColor(0, 0, 0, 0.7f);
         batch.draw(whitePixel, px, py, 200, 100);
@@ -73,61 +94,76 @@ public class UiRenderer implements Disposable {
     }
 
     public void drawPauseMenu() {
+        float safeLeft = Gdx.graphics.getSafeInsetLeft();
+        float safeRight = Gdx.graphics.getSafeInsetRight();
+        float safeTop = Gdx.graphics.getSafeInsetTop();        float safeBottom = Gdx.graphics.getSafeInsetBottom();
+        
+        float menuWidth = Gdx.graphics.getWidth() - safeLeft - safeRight;
+        float menuHeight = Gdx.graphics.getHeight() - safeTop - safeBottom;
+        
         batch.setColor(0, 0, 0, 0.6f);
-        batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.draw(whitePixel, safeLeft, safeTop, menuWidth, menuHeight);
         batch.setColor(1, 1, 1, 1);
 
         font.setColor(Color.YELLOW);
         layout.setText(font, "PAUSA");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 80);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 80);
 
         font.setColor(Color.WHITE);
         layout.setText(font, "Continuar");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 120);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 120);
 
         layout.setText(font, "Menu Principal");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 160);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 160);
 
         layout.setText(font, "Configurações");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 200);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 200);
 
         layout.setText(font, "Sair");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 240);
     }
 
     public void drawSettingsMenu(
-        boolean invertScrollY,        boolean invertPinch,
+        boolean invertScrollY,
+        boolean invertPinch,
         float pinchSensitivity,
         float scrollSensitivity
     ) {
+        float safeLeft = Gdx.graphics.getSafeInsetLeft();
+        float safeRight = Gdx.graphics.getSafeInsetRight();
+        float safeTop = Gdx.graphics.getSafeInsetTop();
+        float safeBottom = Gdx.graphics.getSafeInsetBottom();
+        
+        float menuWidth = Gdx.graphics.getWidth() - safeLeft - safeRight - 100;
+        float menuHeight = Gdx.graphics.getHeight() - safeTop - safeBottom - 100;
+        
         batch.setColor(0, 0, 0, 0.7f);
-        batch.draw(whitePixel, 50, 50, Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 100);
+        batch.draw(whitePixel, safeLeft + 50, safeTop + 50, menuWidth, menuHeight);
         batch.setColor(1, 1, 1, 1);
 
         font.setColor(Color.YELLOW);
         layout.setText(font, "CONTROLES");
-        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
+        font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 100);
 
-        int y = Gdx.graphics.getHeight() - 140;
-
+        int y = Gdx.graphics.getHeight() - safeBottom - 140;
         String scrollText = "Inverter Eixo Y: " + (invertScrollY ? "SIM" : "NÃO");
         layout.setText(font, scrollText);
-        font.draw(batch, layout, 100, y);
+        font.draw(batch, layout, safeLeft + 100, y);
         y -= 40;
 
         String pinchText = "Inverter Pinça: " + (invertPinch ? "SIM" : "NÃO");
         layout.setText(font, pinchText);
-        font.draw(batch, layout, 100, y);
+        font.draw(batch, layout, safeLeft + 100, y);
         y -= 40;
 
         String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
         layout.setText(font, pinchSensText);
-        font.draw(batch, layout, 100, y);
+        font.draw(batch, layout, safeLeft + 100, y);
         y -= 40;
 
         String scrollSensText = "Sens. Scroll: " + String.format("%.2f", scrollSensitivity);
         layout.setText(font, scrollSensText);
-        font.draw(batch, layout, 100, y);
+        font.draw(batch, layout, safeLeft + 100, y);
     }
 
     @Override

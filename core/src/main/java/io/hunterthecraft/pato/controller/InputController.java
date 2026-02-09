@@ -47,8 +47,14 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        if (!pauseMenuOpen && !settingsOpen) {            // Botão ocupa 128x128 no canto inferior direito
-            if (x > Gdx.graphics.getWidth() - 128 && y > Gdx.graphics.getHeight() - 128) {
+        if (!pauseMenuOpen && !settingsOpen) {            float size = 128;
+            float safeRight = Gdx.graphics.getSafeInsetRight();
+            float safeBottom = Gdx.graphics.getSafeInsetBottom();
+            
+            float btnX = Gdx.graphics.getWidth() - size - safeRight;
+            float btnY = Gdx.graphics.getHeight() - size - safeBottom;
+            
+            if (x > btnX && y > btnY) {
                 listener.onPauseButtonTapped();
                 return true;
             }
@@ -90,13 +96,13 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        if (!pauseMenuOpen && !settingsOpen) {
-            float delta = distance - initialDistance;
+        if (!pauseMenuOpen && !settingsOpen) {            float delta = distance - initialDistance;
             if (invertPinch) delta = -delta;
             listener.onZoom(delta * pinchSensitivity);
         }
         return false;
     }
+
     @Override
     public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
         return false;
