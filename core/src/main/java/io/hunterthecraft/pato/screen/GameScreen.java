@@ -129,8 +129,13 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
 
     private void renderChunks() {
         try {
-            int centerChunkX = (int) (camera.position.x / (Chunk.SIZE * TILE_SIZE));
-            int centerChunkY = (int) (camera.position.y / (Chunk.SIZE * TILE_SIZE));
+            // Calcula posição central em coordenadas de tile
+            int centerTileX = (int) (camera.position.x / TILE_SIZE);
+            int centerTileY = (int) (camera.position.y / TILE_SIZE);
+            
+            // Converte para coordenadas de chunk
+            int centerChunkX = ChunkManager.getChunkX(centerTileX);
+            int centerChunkY = ChunkManager.getChunkY(centerTileY);
 
             int radius = 2;
             for (int cy = centerChunkY - radius; cy <= centerChunkY + radius; cy++) {
@@ -140,12 +145,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                         for (int x = 0; x < Chunk.SIZE; x++) {
                             TileType tile = chunk.getTile(x, y);
                             int globalX = cx * Chunk.SIZE + x;
-                            int globalY = cy * Chunk.SIZE + y;
-                            Texture tex = (tile == TileType.AMAZONIA) ? tileTextures[0] : tileTextures[1];
+                            int globalY = cy * Chunk.SIZE + y;                            Texture tex = (tile == TileType.AMAZONIA) ? tileTextures[0] : tileTextures[1];
                             batch.draw(tex, globalX * TILE_SIZE, globalY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                         }
                     }
-                }            }
+                }
+            }
 
             chunkManager.unloadDistantChunks(centerChunkX, centerChunkY);
         } catch (Exception e) {
@@ -189,12 +194,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             layout.setText(font, "Configurações");
             font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 200);
 
-            layout.setText(font, "Sair");
-            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
+            layout.setText(font, "Sair");            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
 
             if (Gdx.input.justTouched()) {
                 float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
-                if (touchY > 110 && touchY < 130) {                    pauseMenuOpen = false;
+                if (touchY > 110 && touchY < 130) {
+                    pauseMenuOpen = false;
                 } else if (touchY > 150 && touchY < 170) {
                     game.setScreen(new MainMenuScreen(game));
                 } else if (touchY > 190 && touchY < 210) {
@@ -238,12 +243,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         y -= 40;
 
-        // Sensibilidade Pinça
-        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
+        // Sensibilidade Pinça        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
         layout.setText(font, pinchSensText);
         font.draw(batch, layout, 100, y);
         if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
-            pinchSensitivity = Math.max(0.001f, Math.min(0.02f, pinchSensitivity + 0.001f));        }
+            pinchSensitivity = Math.max(0.001f, Math.min(0.02f, pinchSensitivity + 0.001f));
+        }
         y -= 40;
 
         // Sensibilidade Scroll
@@ -286,14 +291,23 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             int tileX = (int) (worldPos.x / TILE_SIZE);
             int tileY = (int) (worldPos.y / TILE_SIZE);
 
+            // Calcula chunk e coordenadas locais corretamente
+            int chunkX = ChunkManager.getChunkX(tileX);            int chunkY = ChunkManager.getChunkY(tileY);
+            int localX = tileX - chunkX * Chunk.SIZE;
+            int localY = tileY - chunkY * Chunk.SIZE;
+
+            // Validação extra (embora não seja mais necessária)
+            if (localX < 0 || localX >= Chunk.SIZE || localY < 0 || localY >= Chunk.SIZE) {
+                return false;
+            }
+
             if (popupOpen && selectedX == tileX && selectedY == tileY) {
                 popupOpen = false;
             } else {
                 selectedX = tileX;
                 selectedY = tileY;
-                int chunkX = tileX / Chunk.SIZE;
-                int chunkY = tileY / Chunk.SIZE;                Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
-                selectedTile = chunk.getTile(tileX % Chunk.SIZE, tileY % Chunk.SIZE);
+                Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
+                selectedTile = chunk.getTile(localX, localY);
                 popupOpen = true;
             }
         } catch (Exception e) {
@@ -328,7 +342,6 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         return false;
     }
-
     @Override
     public boolean panStop(float x, float y, int pointer, int button) {
         return false;
@@ -341,7 +354,8 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                 float delta = distance - initialDistance;
                 if (invertPinch) delta = -delta;
                 zoom += delta * pinchSensitivity;
-                zoom = Math.max(0.5f, Math.min(3.0f, zoom));            } catch (Exception e) {
+                zoom = Math.max(0.5f, Math.min(3.0f, zoom));
+            } catch (Exception e) {
                 Gdx.app.error("GameScreen", "Erro no zoom", e);
             }
         }
@@ -376,8 +390,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public void dispose() {
         try {
             if (whitePixel != null) whitePixel.dispose();
-            if (tileTextures != null) {
-                for (Texture t : tileTextures) if (t != null) t.dispose();
+            if (tileTextures != null) {                for (Texture t : tileTextures) if (t != null) t.dispose();
             }
             if (batch != null) batch.dispose();
             if (font != null) font.dispose();

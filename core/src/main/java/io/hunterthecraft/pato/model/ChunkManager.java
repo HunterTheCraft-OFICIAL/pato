@@ -13,6 +13,15 @@ public class ChunkManager {
         return loadedChunks.computeIfAbsent(key, k -> new Chunk(chunkX, chunkY));
     }
 
+    // ✅ Lida corretamente com coordenadas negativas
+    public static int getChunkX(int tileX) {
+        return tileX >= 0 ? tileX / Chunk.SIZE : (tileX - Chunk.SIZE + 1) / Chunk.SIZE;
+    }
+
+    public static int getChunkY(int tileY) {
+        return tileY >= 0 ? tileY / Chunk.SIZE : (tileY - Chunk.SIZE + 1) / Chunk.SIZE;
+    }
+
     public void unloadDistantChunks(int playerChunkX, int playerChunkY) {
         loadedChunks.entrySet().removeIf(entry -> {
             String[] parts = entry.getKey().split(",");
