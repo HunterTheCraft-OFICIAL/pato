@@ -42,12 +42,18 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     private boolean pauseMenuOpen = false;
     private boolean settingsOpen = false;
 
+    // Controles de input
+    private boolean invertScrollY = false;
+    private boolean invertPinch = false;
+    private float pinchSensitivity = 0.005f;
+    private float scrollSensitivity = 1.0f;
     public GameScreen(PatoGame game) {
         this.game = game;
     }
 
     @Override
-    public void show() {        try {
+    public void show() {
+        try {
             batch = new SpriteBatch();
             font = new BitmapFont();
             font.getData().setScale(1.0f);
@@ -91,12 +97,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             if (popupOpen && selectedTile != null) {
                 float px = selectedX * TILE_SIZE;
                 float py = selectedY * TILE_SIZE + TILE_SIZE;
-
                 batch.setColor(0, 0, 0, 0.7f);
                 batch.draw(whitePixel, px, py, 200, 100);
                 batch.setColor(1, 1, 1, 1);
 
-                font.setColor(Color.WHITE);                layout.setText(font, "Bioma: " + selectedTile.toString());
+                font.setColor(Color.WHITE);
+                layout.setText(font, "Bioma: " + selectedTile.toString());
                 font.draw(batch, layout, px + 10, py + 80);
 
                 layout.setText(font, String.format("Coord: (%d, %d)", selectedX, selectedY));
@@ -139,13 +145,13 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                             batch.draw(tex, globalX * TILE_SIZE, globalY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                         }
                     }
-                }
-            }
+                }            }
 
             chunkManager.unloadDistantChunks(centerChunkX, centerChunkY);
         } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro ao renderizar chunks", e);
-            throw e;        }
+            throw e;
+        }
     }
 
     private void drawPauseButton() {
@@ -188,13 +194,13 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
 
             if (Gdx.input.justTouched()) {
                 float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
-                if (touchY > 110 && touchY < 130) {
-                    pauseMenuOpen = false;
+                if (touchY > 110 && touchY < 130) {                    pauseMenuOpen = false;
                 } else if (touchY > 150 && touchY < 170) {
                     game.setScreen(new MainMenuScreen(game));
                 } else if (touchY > 190 && touchY < 210) {
                     settingsOpen = true;
-                } else if (touchY > 230 && touchY < 250) {                    Gdx.app.exit();
+                } else if (touchY > 230 && touchY < 250) {
+                    Gdx.app.exit();
                 }
             }
         } catch (Exception e) {
@@ -203,31 +209,65 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     }
 
     private void drawSettingsMenu() {
-        try {
-            batch.setColor(0, 0, 0, 0.7f);
-            batch.draw(whitePixel, 50, 50, Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 100);
-            batch.setColor(1, 1, 1, 1);
+        batch.setColor(0, 0, 0, 0.7f);
+        batch.draw(whitePixel, 50, 50, Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 100);
+        batch.setColor(1, 1, 1, 1);
 
-            font.setColor(Color.YELLOW);
-            layout.setText(font, "CONFIGURAÇÕES");
-            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
+        font.setColor(Color.YELLOW);
+        layout.setText(font, "CONTROLES");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
 
-            font.setColor(Color.WHITE);
-            layout.setText(font, "Zoom Sensitivity: 0.005");
-            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 150);
+        int y = Gdx.graphics.getHeight() - 140;
 
-            layout.setText(font, "Render Distance: 2 chunks");
-            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 190);
-
-            layout.setText(font, "Voltar");
-            font.draw(batch, layout, 100, 100);
-
-            if (Gdx.input.justTouched() && Gdx.input.getY() < 150) {
-                settingsOpen = false;
-            }
-        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Erro no menu de configurações", e);
+        // Inverter Eixo Y (Scroll)
+        font.setColor(Color.WHITE);
+        String scrollText = "Inverter Eixo Y: " + (invertScrollY ? "SIM" : "NÃO");
+        layout.setText(font, scrollText);
+        font.draw(batch, layout, 100, y);
+        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
+            invertScrollY = !invertScrollY;
         }
+        y -= 40;
+
+        // Inverter Pinça
+        String pinchText = "Inverter Pinça: " + (invertPinch ? "SIM" : "NÃO");
+        layout.setText(font, pinchText);
+        font.draw(batch, layout, 100, y);
+        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
+            invertPinch = !invertPinch;
+        }
+        y -= 40;
+
+        // Sensibilidade Pinça
+        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
+        layout.setText(font, pinchSensText);
+        font.draw(batch, layout, 100, y);
+        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
+            pinchSensitivity = Math.max(0.001f, Math.min(0.02f, pinchSensitivity + 0.001f));        }
+        y -= 40;
+
+        // Sensibilidade Scroll
+        String scrollSensText = "Sens. Scroll: " + String.format("%.2f", scrollSensitivity);
+        layout.setText(font, scrollSensText);
+        font.draw(batch, layout, 100, y);
+        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
+            scrollSensitivity = Math.max(0.5f, Math.min(3.0f, scrollSensitivity + 0.1f));
+        }
+        y -= 60;
+
+        // Botão Voltar
+        layout.setText(font, "Voltar");
+        font.draw(batch, layout, 100, 100);
+        if (Gdx.input.justTouched() && Gdx.input.getY() < 150) {
+            settingsOpen = false;
+        }
+    }
+
+    private boolean touchInRect(float x, float y, float width, float height) {
+        float touchX = Gdx.input.getX();
+        float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        return touchX >= x && touchX <= x + width &&
+               touchY >= y && touchY <= y + height;
     }
 
     @Override
@@ -243,7 +283,8 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             Vector2 screenPos = new Vector2(x, y);
             Vector2 worldPos = viewport.unproject(screenPos);
 
-            int tileX = (int) (worldPos.x / TILE_SIZE);            int tileY = (int) (worldPos.y / TILE_SIZE);
+            int tileX = (int) (worldPos.x / TILE_SIZE);
+            int tileY = (int) (worldPos.y / TILE_SIZE);
 
             if (popupOpen && selectedX == tileX && selectedY == tileY) {
                 popupOpen = false;
@@ -251,8 +292,7 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                 selectedX = tileX;
                 selectedY = tileY;
                 int chunkX = tileX / Chunk.SIZE;
-                int chunkY = tileY / Chunk.SIZE;
-                Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
+                int chunkY = tileY / Chunk.SIZE;                Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
                 selectedTile = chunk.getTile(tileX % Chunk.SIZE, tileY % Chunk.SIZE);
                 popupOpen = true;
             }
@@ -279,7 +319,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public boolean pan(float x, float y, float deltaX, float deltaY) {
         if (!pauseMenuOpen && !settingsOpen) {
             try {
-                panOffset.add(-deltaX * zoom, deltaY * zoom);
+                float finalDeltaY = invertScrollY ? -deltaY : deltaY;
+                panOffset.add(-deltaX * zoom * scrollSensitivity, 
+                              finalDeltaY * zoom * scrollSensitivity);
             } catch (Exception e) {
                 Gdx.app.error("GameScreen", "Erro no pan", e);
             }
@@ -292,13 +334,14 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         return false;
     }
 
-    @Override    public boolean zoom(float initialDistance, float distance) {
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
         if (!pauseMenuOpen && !settingsOpen) {
             try {
                 float delta = distance - initialDistance;
-                zoom += delta * 0.005f;
-                zoom = Math.max(0.5f, Math.min(3.0f, zoom));
-            } catch (Exception e) {
+                if (invertPinch) delta = -delta;
+                zoom += delta * pinchSensitivity;
+                zoom = Math.max(0.5f, Math.min(3.0f, zoom));            } catch (Exception e) {
                 Gdx.app.error("GameScreen", "Erro no zoom", e);
             }
         }
@@ -341,4 +384,5 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro no dispose", e);
         }
-    }}
+    }
+}
