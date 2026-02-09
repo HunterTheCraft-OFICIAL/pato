@@ -129,11 +129,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
 
     private void renderChunks() {
         try {
-            // Calcula posição central em coordenadas de tile
             int centerTileX = (int) (camera.position.x / TILE_SIZE);
             int centerTileY = (int) (camera.position.y / TILE_SIZE);
             
-            // Converte para coordenadas de chunk
             int centerChunkX = ChunkManager.getChunkX(centerTileX);
             int centerChunkY = ChunkManager.getChunkY(centerTileY);
 
@@ -145,9 +143,9 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
                         for (int x = 0; x < Chunk.SIZE; x++) {
                             TileType tile = chunk.getTile(x, y);
                             int globalX = cx * Chunk.SIZE + x;
-                            int globalY = cy * Chunk.SIZE + y;                            Texture tex = (tile == TileType.AMAZONIA) ? tileTextures[0] : tileTextures[1];
-                            batch.draw(tex, globalX * TILE_SIZE, globalY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                        }
+                            int globalY = cy * Chunk.SIZE + y;
+                            Texture tex = (tile == TileType.AMAZONIA) ? tileTextures[0] : tileTextures[1];
+                            batch.draw(tex, globalX * TILE_SIZE, globalY * TILE_SIZE, TILE_SIZE, TILE_SIZE);                        }
                     }
                 }
             }
@@ -194,8 +192,8 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             layout.setText(font, "Configurações");
             font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 200);
 
-            layout.setText(font, "Sair");            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
-
+            layout.setText(font, "Sair");
+            font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
             if (Gdx.input.justTouched()) {
                 float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
                 if (touchY > 110 && touchY < 130) {
@@ -225,7 +223,6 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         int y = Gdx.graphics.getHeight() - 140;
 
         // Inverter Eixo Y (Scroll)
-        font.setColor(Color.WHITE);
         String scrollText = "Inverter Eixo Y: " + (invertScrollY ? "SIM" : "NÃO");
         layout.setText(font, scrollText);
         font.draw(batch, layout, 100, y);
@@ -243,10 +240,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         y -= 40;
 
-        // Sensibilidade Pinça        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
+        // Sensibilidade Pinça
+        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
         layout.setText(font, pinchSensText);
-        font.draw(batch, layout, 100, y);
-        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
+        font.draw(batch, layout, 100, y);        if (Gdx.input.justTouched() && touchInRect(100, y - 20, 300, 30)) {
             pinchSensitivity = Math.max(0.001f, Math.min(0.02f, pinchSensitivity + 0.001f));
         }
         y -= 40;
@@ -291,12 +288,10 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
             int tileX = (int) (worldPos.x / TILE_SIZE);
             int tileY = (int) (worldPos.y / TILE_SIZE);
 
-            // Calcula chunk e coordenadas locais corretamente
-            int chunkX = ChunkManager.getChunkX(tileX);            int chunkY = ChunkManager.getChunkY(tileY);
+            int chunkX = ChunkManager.getChunkX(tileX);
+            int chunkY = ChunkManager.getChunkY(tileY);
             int localX = tileX - chunkX * Chunk.SIZE;
             int localY = tileY - chunkY * Chunk.SIZE;
-
-            // Validação extra (embora não seja mais necessária)
             if (localX < 0 || localX >= Chunk.SIZE || localY < 0 || localY >= Chunk.SIZE) {
                 return false;
             }
@@ -342,11 +337,11 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
         }
         return false;
     }
+
     @Override
     public boolean panStop(float x, float y, int pointer, int button) {
         return false;
     }
-
     @Override
     public boolean zoom(float initialDistance, float distance) {
         if (!pauseMenuOpen && !settingsOpen) {
@@ -390,12 +385,12 @@ public class GameScreen implements Screen, GestureDetector.GestureListener {
     public void dispose() {
         try {
             if (whitePixel != null) whitePixel.dispose();
-            if (tileTextures != null) {                for (Texture t : tileTextures) if (t != null) t.dispose();
+            if (tileTextures != null) {
+                for (Texture t : tileTextures) if (t != null) t.dispose();
             }
             if (batch != null) batch.dispose();
             if (font != null) font.dispose();
-        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Erro no dispose", e);
+        } catch (Exception e) {            Gdx.app.error("GameScreen", "Erro no dispose", e);
         }
     }
 }
