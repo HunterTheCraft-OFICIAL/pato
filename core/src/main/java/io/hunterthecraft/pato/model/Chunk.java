@@ -8,7 +8,7 @@ public class Chunk {
     public final int chunkX, chunkY;
     private TileType[][] tiles = new TileType[SIZE][SIZE];
 
-    public Chunk(int chunkX, int chunkY) { // ← CONFIRME: "int chunkY"
+    public Chunk(int chunkX, int chunkY) {
         this.chunkX = chunkX;
         this.chunkY = chunkY;
         generate();
