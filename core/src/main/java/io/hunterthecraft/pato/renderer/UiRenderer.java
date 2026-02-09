@@ -59,13 +59,12 @@ public class UiRenderer implements Disposable {
         float safeTop = Gdx.graphics.getSafeInsetTop();
         float safeBottom = Gdx.graphics.getSafeInsetBottom();
         
-        // Posiciona a pop-up com segurança
         float px = tileX * 128;
         float py = tileY * 128 + 150;
         
         // Evita que fique sob a notch superior
         if (py > Gdx.graphics.getHeight() - 120 - safeBottom) {
-            py = tileY * 128 - 20; // acima do tile
+            py = tileY * 128 - 20;
         }
         
         // Evita que fique fora da direita
@@ -96,8 +95,8 @@ public class UiRenderer implements Disposable {
     public void drawPauseMenu() {
         float safeLeft = Gdx.graphics.getSafeInsetLeft();
         float safeRight = Gdx.graphics.getSafeInsetRight();
-        float safeTop = Gdx.graphics.getSafeInsetTop();        float safeBottom = Gdx.graphics.getSafeInsetBottom();
-        
+        float safeTop = Gdx.graphics.getSafeInsetTop();
+        float safeBottom = Gdx.graphics.getSafeInsetBottom();        
         float menuWidth = Gdx.graphics.getWidth() - safeLeft - safeRight;
         float menuHeight = Gdx.graphics.getHeight() - safeTop - safeBottom;
         
@@ -145,7 +144,7 @@ public class UiRenderer implements Disposable {
         layout.setText(font, "CONTROLES");
         font.draw(batch, layout, safeLeft + 100, Gdx.graphics.getHeight() - safeBottom - 100);
 
-        int y = Gdx.graphics.getHeight() - safeBottom - 140;
+        float y = Gdx.graphics.getHeight() - safeBottom - 140; // ← FLOAT CORRIGIDO
         String scrollText = "Inverter Eixo Y: " + (invertScrollY ? "SIM" : "NÃO");
         layout.setText(font, scrollText);
         font.draw(batch, layout, safeLeft + 100, y);
