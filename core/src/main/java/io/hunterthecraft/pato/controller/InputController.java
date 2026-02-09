@@ -1,6 +1,7 @@
 // core/src/io/hunterthecraft/pato/controller/InputController.java
 package io.hunterthecraft.pato.controller;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 
@@ -32,7 +33,6 @@ public class InputController implements GestureDetector.GestureListener {
         this.settingsOpen = settingsOpen;
     }
 
-    // Getters/Setters para configurações
     public boolean isInvertScrollY() { return invertScrollY; }
     public void setInvertScrollY(boolean invertScrollY) { this.invertScrollY = invertScrollY; }
 
@@ -47,8 +47,7 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        // Verifica clique no botão de pausa (canto inferior direito)        if (!pauseMenuOpen && !settingsOpen) {
-            if (x > Gdx.graphics.getWidth() - 60 && y > Gdx.graphics.getHeight() - 60) {
+        if (!pauseMenuOpen && !settingsOpen) {            if (x > Gdx.graphics.getWidth() - 60 && y > Gdx.graphics.getHeight() - 60) {
                 listener.onPauseButtonTapped();
                 return true;
             }
@@ -58,18 +57,21 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean tap(float x, float y, int count, int button) {
-        if (!pauseMenu, !settingsOpen) {
-            // Conversão para coordenadas do mundo deve ser feita pelo listener
-            listener.onTileTapped((int)x, (int)y);
+        if (!pauseMenuOpen && !settingsOpen) {
+            listener.onTileTapped((int) x, (int) y);
         }
         return false;
     }
 
     @Override
-    public boolean longPress(float x, float y) { return false; }
+    public boolean longPress(float x, float y) {
+        return false;
+    }
 
     @Override
-    public boolean fling(float velocityX, float velocityY, int button) { return false; }
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
@@ -81,7 +83,9 @@ public class InputController implements GestureDetector.GestureListener {
     }
 
     @Override
-    public boolean panStop(float x, float y, int pointer, int button) { return false; }
+    public boolean panStop(float x, float y, int pointer, int button) {
+        return false;
+    }
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
@@ -92,9 +96,11 @@ public class InputController implements GestureDetector.GestureListener {
         }
         return false;
     }
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
+    }
 
     @Override
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) { return false; }
-
-    @Override    public void pinchStop() {}
+    public void pinchStop() {}
 }
