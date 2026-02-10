@@ -12,13 +12,13 @@ import com.badlogic.gdx.utils.Disposable;
 import io.hunterthecraft.pato.data.TileType;
 
 public class UiRenderer implements Disposable {
-    private SpriteBatch batch;
+    private SpriteBatch batch; // ← Agora é uiBatch
     private BitmapFont font;
     private GlyphLayout layout;
     private Texture whitePixel;
 
     public UiRenderer(SpriteBatch batch) {
-        this.batch = batch;
+        this.batch = batch; // ← Recebe uiBatch
         this.font = new BitmapFont();
         this.font.getData().setScale(1.0f);
         this.layout = new GlyphLayout();
@@ -52,11 +52,9 @@ public class UiRenderer implements Disposable {
     }
 
     public void drawTilePopup(int tileX, int tileY, TileType tileType) {
-        // Converte posição do tile para coordenadas de tela
         float px = tileX * 128;
         float py = tileY * 128 + 150;
         
-        // Garante que fique dentro da tela
         if (px > Gdx.graphics.getWidth() - 220) px = Gdx.graphics.getWidth() - 220;
         if (py > Gdx.graphics.getHeight() - 120) py = Gdx.graphics.getHeight() - 120;
         if (px < 20) px = 20;
@@ -96,9 +94,9 @@ public class UiRenderer implements Disposable {
         layout.setText(font, "Configurações");
         font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 200);
 
-        layout.setText(font, "Sair");        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
+        layout.setText(font, "Sair");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
     }
-
     public void drawSettingsMenu(
         boolean invertScrollY,
         boolean invertPinch,

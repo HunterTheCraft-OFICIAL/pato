@@ -19,7 +19,8 @@ import io.hunterthecraft.pato.renderer.WorldRenderer;
 
 public class GameScreen implements Screen, InputController.InputListener {
     private PatoGame game;
-    private SpriteBatch batch;
+    private SpriteBatch worldBatch; // ← Só para mundo
+    private SpriteBatch uiBatch;    // ← Só para UI
     private OrthographicCamera camera;
     private ScreenViewport viewport;
 
@@ -44,12 +45,13 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void show() {
         try {
-            batch = new SpriteBatch();
-            camera = new OrthographicCamera();
-            viewport = new ScreenViewport(camera);
+            worldBatch = new SpriteBatch();
+            uiBatch = new SpriteBatch(); // ← Batch separado para UI
+            camera = new OrthographicCamera();            viewport = new ScreenViewport(camera);
             viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-            worldRenderer = new WorldRenderer(batch);
-            uiRenderer = new UiRenderer(batch);
+
+            worldRenderer = new WorldRenderer(worldBatch); // ← Usa worldBatch
+            uiRenderer = new UiRenderer(uiBatch);          // ← Usa uiBatch
             inputController = new InputController(this);
 
             Gdx.input.setInputProcessor(new GestureDetector(inputController));
@@ -62,23 +64,21 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void render(float delta) {
         try {
-            // Atualiza câmera
             camera.position.set(panOffsetX, panOffsetY, 0);
             camera.zoom = zoom;
             camera.update();
 
             ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
-            // Renderiza MUNDO (com câmera)
-            batch.begin();
-            batch.setProjectionMatrix(camera.combined);
+            // Renderiza MUNDO
+            worldBatch.begin();
+            worldBatch.setProjectionMatrix(camera.combined);
             worldRenderer.render(camera.position.x, camera.position.y, zoom);
-            batch.end();
+            worldBatch.end();
 
-            // Renderiza UI (sem câmera — como MainMenuScreen)
-            batch.begin(); // Nova begin para UI
+            // Renderiza UI (totalmente separado)
+            uiBatch.begin();
             // NÃO chama setProjectionMatrix() → usa projeção padrão (tela fixa)
-
             uiRenderer.drawPauseButton();
             
             if (popupOpen && selectedTile != null) {
@@ -95,9 +95,8 @@ public class GameScreen implements Screen, InputController.InputListener {
                     inputController.getScrollSensitivity()
                 );
             }
-
-            batch.end();        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Erro na renderização", e);
+            uiBatch.end();
+        } catch (Exception e) {            Gdx.app.error("GameScreen", "Erro na renderização", e);
             game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
         }
     }
@@ -145,8 +144,8 @@ public class GameScreen implements Screen, InputController.InputListener {
         zoom += delta;
         zoom = Math.max(0.5f, Math.min(3.0f, zoom));
     }
-    @Override
-    public void onPauseButtonTapped() {
+
+    @Override    public void onPauseButtonTapped() {
         pauseMenuOpen = true;
     }
 
@@ -166,6 +165,7 @@ public class GameScreen implements Screen, InputController.InputListener {
     public void dispose() {
         if (worldRenderer != null) worldRenderer.dispose();
         if (uiRenderer != null) uiRenderer.dispose();
-        if (batch != null) batch.dispose();
+        if (worldBatch != null) worldBatch.dispose();
+        if (uiBatch != null) uiBatch.dispose();
     }
 }

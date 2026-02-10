@@ -9,13 +9,13 @@ import io.hunterthecraft.pato.model.Chunk;
 import io.hunterthecraft.pato.model.ChunkManager;
 
 public class WorldRenderer implements Disposable {
-    private SpriteBatch batch;
+    private SpriteBatch batch; // ← Agora é worldBatch
     private Texture[] tileTextures;
     private ChunkManager chunkManager;
     private static final int TILE_SIZE = 128;
 
     public WorldRenderer(SpriteBatch batch) {
-        this.batch = batch;
+        this.batch = batch; // ← Recebe worldBatch
         this.chunkManager = new ChunkManager();
         loadTextures();
     }
