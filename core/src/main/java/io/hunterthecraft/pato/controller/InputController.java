@@ -8,8 +8,11 @@ import com.badlogic.gdx.math.Vector2;
 public class InputController implements GestureDetector.GestureListener {
     public interface InputListener {
         void onTileTapped(int tileX, int tileY);
+
         void onPan(float deltaX, float deltaY);
+
         void onZoom(float delta);
+
         void onPauseButtonTapped();
     }
 
@@ -33,28 +36,43 @@ public class InputController implements GestureDetector.GestureListener {
         this.settingsOpen = settingsOpen;
     }
 
-    public boolean isInvertScrollY() { return invertScrollY; }
-    public void setInvertScrollY(boolean invertScrollY) { this.invertScrollY = invertScrollY; }
+    public boolean isInvertScrollY() {
+        return invertScrollY;
+    }
 
-    public boolean isInvertPinch() { return invertPinch; }
-    public void setInvertPinch(boolean invertPinch) { this.invertPinch = invertPinch; }
+    public void setInvertScrollY(boolean invertScrollY) {
+        this.invertScrollY = invertScrollY;
+    }
 
-    public float getPinchSensitivity() { return pinchSensitivity; }
-    public void setPinchSensitivity(float pinchSensitivity) { this.pinchSensitivity = pinchSensitivity; }
+    public boolean isInvertPinch() {
+        return invertPinch;
+    }
 
-    public float getScrollSensitivity() { return scrollSensitivity; }
-    public void setScrollSensitivity(float scrollSensitivity) { this.scrollSensitivity = scrollSensitivity; }
+    public void setInvertPinch(boolean invertPinch) {
+        this.invertPinch = invertPinch;
+    }
+
+    public float getPinchSensitivity() {
+        return pinchSensitivity;
+    }
+
+    public void setPinchSensitivity(float pinchSensitivity) {
+        this.pinchSensitivity = pinchSensitivity;
+    }
+
+    public float getScrollSensitivity() {
+        return scrollSensitivity;
+    }
+
+    public void setScrollSensitivity(float scrollSensitivity) {
+        this.scrollSensitivity = scrollSensitivity;
+    }
 
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        if (!pauseMenuOpen && !settingsOpen) {            float size = 128;
-            float safeRight = Gdx.graphics.getSafeInsetRight();
-            float safeBottom = Gdx.graphics.getSafeInsetBottom();
-            
-            float btnX = Gdx.graphics.getWidth() - size - safeRight;
-            float btnY = Gdx.graphics.getHeight() - size - safeBottom;
-            
-            if (x > btnX && y > btnY) {
+        if (!pauseMenuOpen && !settingsOpen) {
+            float size = 128;
+            if (x > Gdx.graphics.getWidth() - size && y > Gdx.graphics.getHeight() - size) {
                 listener.onPauseButtonTapped();
                 return true;
             }
@@ -96,7 +114,8 @@ public class InputController implements GestureDetector.GestureListener {
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        if (!pauseMenuOpen && !settingsOpen) {            float delta = distance - initialDistance;
+        if (!pauseMenuOpen && !settingsOpen) {
+            float delta = distance - initialDistance;
             if (invertPinch) delta = -delta;
             listener.onZoom(delta * pinchSensitivity);
         }

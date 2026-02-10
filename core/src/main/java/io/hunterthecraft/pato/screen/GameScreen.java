@@ -62,6 +62,7 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void render(float delta) {
         try {
+            // Atualiza câmera
             camera.position.set(panOffsetX, panOffsetY, 0);
             camera.zoom = zoom;
             camera.update();
@@ -74,9 +75,10 @@ public class GameScreen implements Screen, InputController.InputListener {
             worldRenderer.render(camera.position.x, camera.position.y, zoom);
             batch.end();
 
-            // Renderiza UI (coordenadas de tela fixas)
-            batch.begin();
-            batch.setProjectionMatrix(new OrthographicCamera().combined);
+            // Renderiza UI (sem câmera — como MainMenuScreen)
+            batch.begin(); // Nova begin para UI
+            // NÃO chama setProjectionMatrix() → usa projeção padrão (tela fixa)
+
             uiRenderer.drawPauseButton();
             
             if (popupOpen && selectedTile != null) {
@@ -93,10 +95,8 @@ public class GameScreen implements Screen, InputController.InputListener {
                     inputController.getScrollSensitivity()
                 );
             }
-            batch.end();
 
-            inputController.setPauseMenuOpen(pauseMenuOpen);
-            inputController.setSettingsOpen(settingsOpen);        } catch (Exception e) {
+            batch.end();        } catch (Exception e) {
             Gdx.app.error("GameScreen", "Erro na renderização", e);
             game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
         }
