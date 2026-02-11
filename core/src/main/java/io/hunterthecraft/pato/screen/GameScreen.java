@@ -21,8 +21,8 @@ public class GameScreen implements Screen, InputController.InputListener {
     private PatoGame game;
     private SpriteBatch worldBatch;
     private SpriteBatch uiBatch;
-    private OrthographicCamera worldCamera;  // ← Renomeado pra clareza
-    private OrthographicCamera uiCamera;     // ← NOVA CÂMERA!
+    private OrthographicCamera worldCamera;
+    private OrthographicCamera uiCamera;
     private ScreenViewport viewport;
 
     private WorldRenderer worldRenderer;
@@ -47,14 +47,11 @@ public class GameScreen implements Screen, InputController.InputListener {
     public void show() {
         try {
             worldBatch = new SpriteBatch();
-            uiBatch = new SpriteBatch();
-            
-            // Câmera do MUNDO (move com pan/zoom)
+            uiBatch = new SpriteBatch();            
             worldCamera = new OrthographicCamera();
             viewport = new ScreenViewport(worldCamera);
             viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-            // Câmera da UI (fixa na tela) ← SOLUÇÃO!
             uiCamera = new OrthographicCamera();
             uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -72,7 +69,6 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void render(float delta) {
         try {
-            // Atualiza câmera do MUNDO
             worldCamera.position.set(panOffsetX, panOffsetY, 0);
             worldCamera.zoom = zoom;
             worldCamera.update();
@@ -87,7 +83,7 @@ public class GameScreen implements Screen, InputController.InputListener {
 
             // ========== RENDERIZA UI (FIXA) ==========
             uiBatch.begin();
-            uiBatch.setProjectionMatrix(uiCamera.combined); // ← CRUCIAL!
+            uiBatch.setProjectionMatrix(uiCamera.combined);
             
             uiRenderer.drawPauseButton();
             
@@ -97,6 +93,29 @@ public class GameScreen implements Screen, InputController.InputListener {
             
             if (pauseMenuOpen && !settingsOpen) {
                 uiRenderer.drawPauseMenu();
+                
+                // ✅ DETECÇÃO DE CLIQUE NOS BOTÕES DO MENU
+                if (Gdx.input.justTouched()) {
+                    float touchX = Gdx.input.getX();                    float touchY = Gdx.graphics.getHeight() - Gdx.input.getY(); // inverte Y
+                    
+                    // Botão "Continuar" (y: -120 a -80)
+                    if (touchY > Gdx.graphics.getHeight() - 120 && touchY < Gdx.graphics.getHeight() - 80) {
+                        pauseMenuOpen = false;
+                        inputController.setPauseMenuOpen(false);
+                    }
+                    // Botão "Menu Principal" (y: -160 a -120)
+                    else if (touchY > Gdx.graphics.getHeight() - 160 && touchY < Gdx.graphics.getHeight() - 120) {
+                        game.setScreen(new MainMenuScreen(game));
+                    }
+                    // Botão "Configurações" (y: -200 a -160)
+                    else if (touchY > Gdx.graphics.getHeight() - 200 && touchY < Gdx.graphics.getHeight() - 160) {
+                        settingsOpen = true;
+                    }
+                    // Botão "Sair" (y: -240 a -200)
+                    else if (touchY > Gdx.graphics.getHeight() - 240 && touchY < Gdx.graphics.getHeight() - 200) {
+                        Gdx.app.exit();
+                    }
+                }
             } else if (settingsOpen) {
                 uiRenderer.drawSettingsMenu(
                     inputController.isInvertScrollY(),
@@ -104,6 +123,17 @@ public class GameScreen implements Screen, InputController.InputListener {
                     inputController.getPinchSensitivity(),
                     inputController.getScrollSensitivity()
                 );
+                
+                // ✅ DETECÇÃO DE CLIQUE NO BOTÃO "VOLTAR"
+                if (Gdx.input.justTouched()) {
+                    float touchX = Gdx.input.getX();
+                    float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
+                    
+                    // Botão "Voltar" (y: 100 a 140)
+                    if (touchY > 100 && touchY < 140) {
+                        settingsOpen = false;
+                    }
+                }
             }
             uiBatch.end();
         } catch (Exception e) {
@@ -114,6 +144,7 @@ public class GameScreen implements Screen, InputController.InputListener {
 
     @Override
     public void onTileTapped(int screenX, int screenY) {
+        if (pauseMenuOpen || settingsOpen) return; // ← Ignora cliques no mundo quando menu aberto
         Vector2 screenPos = new Vector2(screenX, screenY);
         Vector2 worldPos = viewport.unproject(screenPos);
         
@@ -146,26 +177,29 @@ public class GameScreen implements Screen, InputController.InputListener {
 
     @Override
     public void onPan(float deltaX, float deltaY) {
-        panOffsetX += deltaX * zoom;
-        panOffsetY += deltaY * zoom;
+        if (!pauseMenuOpen && !settingsOpen) {
+            panOffsetX += deltaX * zoom;
+            panOffsetY += deltaY * zoom;
+        }
     }
 
     @Override
     public void onZoom(float delta) {
-        zoom += delta;
-        zoom = Math.max(0.5f, Math.min(3.0f, zoom));
+        if (!pauseMenuOpen && !settingsOpen) {
+            zoom += delta;
+            zoom = Math.max(0.5f, Math.min(3.0f, zoom));
+        }
     }
 
     @Override
     public void onPauseButtonTapped() {
         pauseMenuOpen = true;
-        inputController.setPauseMenuOpen(true); // ← Avisa o controller!
-    }
+        inputController.setPauseMenuOpen(true);    }
 
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
-        uiCamera.setToOrtho(false, width, height); // ← ATUALIZA UI CAMERA!
+        uiCamera.setToOrtho(false, width, height);
     }
 
     @Override
