@@ -19,9 +19,10 @@ import io.hunterthecraft.pato.renderer.WorldRenderer;
 
 public class GameScreen implements Screen, InputController.InputListener {
     private PatoGame game;
-    private SpriteBatch worldBatch; // ← Só para mundo
-    private SpriteBatch uiBatch;    // ← Só para UI
-    private OrthographicCamera camera;
+    private SpriteBatch worldBatch;
+    private SpriteBatch uiBatch;
+    private OrthographicCamera worldCamera;  // ← Renomeado pra clareza
+    private OrthographicCamera uiCamera;     // ← NOVA CÂMERA!
     private ScreenViewport viewport;
 
     private WorldRenderer worldRenderer;
@@ -46,12 +47,19 @@ public class GameScreen implements Screen, InputController.InputListener {
     public void show() {
         try {
             worldBatch = new SpriteBatch();
-            uiBatch = new SpriteBatch(); // ← Batch separado para UI
-            camera = new OrthographicCamera();            viewport = new ScreenViewport(camera);
+            uiBatch = new SpriteBatch();
+            
+            // Câmera do MUNDO (move com pan/zoom)
+            worldCamera = new OrthographicCamera();
+            viewport = new ScreenViewport(worldCamera);
             viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-            worldRenderer = new WorldRenderer(worldBatch); // ← Usa worldBatch
-            uiRenderer = new UiRenderer(uiBatch);          // ← Usa uiBatch
+            // Câmera da UI (fixa na tela) ← SOLUÇÃO!
+            uiCamera = new OrthographicCamera();
+            uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+            worldRenderer = new WorldRenderer(worldBatch);
+            uiRenderer = new UiRenderer(uiBatch);
             inputController = new InputController(this);
 
             Gdx.input.setInputProcessor(new GestureDetector(inputController));
@@ -64,21 +72,23 @@ public class GameScreen implements Screen, InputController.InputListener {
     @Override
     public void render(float delta) {
         try {
-            camera.position.set(panOffsetX, panOffsetY, 0);
-            camera.zoom = zoom;
-            camera.update();
+            // Atualiza câmera do MUNDO
+            worldCamera.position.set(panOffsetX, panOffsetY, 0);
+            worldCamera.zoom = zoom;
+            worldCamera.update();
 
             ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
 
-            // Renderiza MUNDO
+            // ========== RENDERIZA MUNDO ==========
             worldBatch.begin();
-            worldBatch.setProjectionMatrix(camera.combined);
-            worldRenderer.render(camera.position.x, camera.position.y, zoom);
+            worldBatch.setProjectionMatrix(worldCamera.combined);
+            worldRenderer.render(worldCamera.position.x, worldCamera.position.y, zoom);
             worldBatch.end();
 
-            // Renderiza UI (totalmente separado)
+            // ========== RENDERIZA UI (FIXA) ==========
             uiBatch.begin();
-            // NÃO chama setProjectionMatrix() → usa projeção padrão (tela fixa)
+            uiBatch.setProjectionMatrix(uiCamera.combined); // ← CRUCIAL!
+            
             uiRenderer.drawPauseButton();
             
             if (popupOpen && selectedTile != null) {
@@ -96,7 +106,8 @@ public class GameScreen implements Screen, InputController.InputListener {
                 );
             }
             uiBatch.end();
-        } catch (Exception e) {            Gdx.app.error("GameScreen", "Erro na renderização", e);
+        } catch (Exception e) {
+            Gdx.app.error("GameScreen", "Erro na renderização", e);
             game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
         }
     }
@@ -145,13 +156,16 @@ public class GameScreen implements Screen, InputController.InputListener {
         zoom = Math.max(0.5f, Math.min(3.0f, zoom));
     }
 
-    @Override    public void onPauseButtonTapped() {
+    @Override
+    public void onPauseButtonTapped() {
         pauseMenuOpen = true;
+        inputController.setPauseMenuOpen(true); // ← Avisa o controller!
     }
 
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
+        uiCamera.setToOrtho(false, width, height); // ← ATUALIZA UI CAMERA!
     }
 
     @Override

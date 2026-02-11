@@ -1,184 +1,141 @@
-package io.hunterthecraft.pato.screen;
+// core/src/io/hunterthecraft/pato/renderer/UiRenderer.java
+package io.hunterthecraft.pato.renderer;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.hunterthecraft.pato.PatoGame;
-import io.hunterthecraft.pato.controller.InputController;
+import com.badlogic.gdx.utils.Disposable;
 import io.hunterthecraft.pato.data.TileType;
-import io.hunterthecraft.pato.model.Chunk;
-import io.hunterthecraft.pato.model.ChunkManager;
-import io.hunterthecraft.pato.renderer.UiRenderer;
-import io.hunterthecraft.pato.renderer.WorldRenderer;
 
-public class GameScreen implements Screen, InputController.InputListener {
-    private PatoGame game;
-    private SpriteBatch worldBatch;
-    private SpriteBatch uiBatch;
-    private OrthographicCamera worldCamera;  // ← Renomeado pra clareza
-    private OrthographicCamera uiCamera;     // ← NOVA CÂMERA!
-    private ScreenViewport viewport;
+public class UiRenderer implements Disposable {
+    private SpriteBatch batch;
+    private BitmapFont font;
+    private GlyphLayout layout;
+    private Texture whitePixel;
 
-    private WorldRenderer worldRenderer;
-    private UiRenderer uiRenderer;
-    private InputController inputController;
-
-    private float zoom = 1.0f;
-    private float panOffsetX = 0, panOffsetY = 0;
-
-    private TileType selectedTile = null;
-    private int selectedX = -1, selectedY = -1;
-    private boolean popupOpen = false;
-
-    private boolean pauseMenuOpen = false;
-    private boolean settingsOpen = false;
-
-    public GameScreen(PatoGame game) {
-        this.game = game;
+    public UiRenderer(SpriteBatch batch) {
+        this.batch = batch;
+        this.font = new BitmapFont();
+        this.font.getData().setScale(1.0f);
+        this.layout = new GlyphLayout();
+        createWhitePixel();
     }
 
-    @Override
-    public void show() {
-        try {
-            worldBatch = new SpriteBatch();
-            uiBatch = new SpriteBatch();
-            
-            // Câmera do MUNDO (move com pan/zoom)
-            worldCamera = new OrthographicCamera();
-            viewport = new ScreenViewport(worldCamera);
-            viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-
-            // Câmera da UI (fixa na tela) ← SOLUÇÃO!
-            uiCamera = new OrthographicCamera();
-            uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-            worldRenderer = new WorldRenderer(worldBatch);
-            uiRenderer = new UiRenderer(uiBatch);
-            inputController = new InputController(this);
-
-            Gdx.input.setInputProcessor(new GestureDetector(inputController));
-        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Erro na inicialização", e);
-            game.setScreen(new BugCenterScreen(game, "Falha ao iniciar jogo:\n" + e.toString()));
-        }
+    private void createWhitePixel() {
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        whitePixel = new Texture(pixmap);
+        pixmap.dispose();
     }
 
-    @Override
-    public void render(float delta) {
-        try {
-            // Atualiza câmera do MUNDO
-            worldCamera.position.set(panOffsetX, panOffsetY, 0);
-            worldCamera.zoom = zoom;
-            worldCamera.update();
-
-            ScreenUtils.clear(0.1f, 0.1f, 0.15f, 1);
-
-            // ========== RENDERIZA MUNDO ==========
-            worldBatch.begin();
-            worldBatch.setProjectionMatrix(worldCamera.combined);
-            worldRenderer.render(worldCamera.position.x, worldCamera.position.y, zoom);
-            worldBatch.end();
-
-            // ========== RENDERIZA UI (FIXA) ==========
-            uiBatch.begin();
-            uiBatch.setProjectionMatrix(uiCamera.combined); // ← CRUCIAL!
-            
-            uiRenderer.drawPauseButton();
-            
-            if (popupOpen && selectedTile != null) {
-                uiRenderer.drawTilePopup(selectedX, selectedY, selectedTile);
-            }
-            
-            if (pauseMenuOpen && !settingsOpen) {
-                uiRenderer.drawPauseMenu();
-            } else if (settingsOpen) {
-                uiRenderer.drawSettingsMenu(
-                    inputController.isInvertScrollY(),
-                    inputController.isInvertPinch(),
-                    inputController.getPinchSensitivity(),
-                    inputController.getScrollSensitivity()
-                );
-            }
-            uiBatch.end();
-        } catch (Exception e) {
-            Gdx.app.error("GameScreen", "Erro na renderização", e);
-            game.setScreen(new BugCenterScreen(game, "Erro de renderização:\n" + e.toString()));
-        }
-    }
-
-    @Override
-    public void onTileTapped(int screenX, int screenY) {
-        Vector2 screenPos = new Vector2(screenX, screenY);
-        Vector2 worldPos = viewport.unproject(screenPos);
+    public void drawPauseButton() {
+        float size = 128;
+        float btnX = Gdx.graphics.getWidth() - size;
+        float btnY = Gdx.graphics.getHeight() - size;
         
-        int tileX = (int) (worldPos.x / 128);
-        int tileY = (int) (worldPos.y / 128);
-
-        if (tileX < 0 || tileY < 0) return;
-
-        int chunkX = ChunkManager.getChunkX(tileX);
-        int chunkY = ChunkManager.getChunkY(tileY);
-        int localX = tileX - chunkX * Chunk.SIZE;
-        int localY = tileY - chunkY * Chunk.SIZE;
-
-        if (localX < 0 || localX >= Chunk.SIZE || localY < 0 || localY >= Chunk.SIZE) return;
-
-        if (popupOpen && selectedX == tileX && selectedY == tileY) {
-            popupOpen = false;
-        } else {
-            selectedX = tileX;
-            selectedY = tileY;
-            try {
-                Chunk chunk = worldRenderer.getChunkManager().getChunk(chunkX, chunkY);
-                selectedTile = chunk.getTile(localX, localY);
-                popupOpen = true;
-            } catch (Exception e) {
-                Gdx.app.error("GameScreen", "Erro ao obter chunk", e);
-            }
-        }
+        batch.setColor(0.2f, 0.2f, 0.3f, 0.8f);
+        batch.draw(whitePixel, btnX, btnY, size, size);
+        
+        batch.setColor(1, 1, 1, 1);
+        font.setColor(Color.WHITE);
+        font.getData().setScale(4.0f);
+        layout.setText(font, "⏸");
+        font.draw(batch, layout, 
+            btnX + size/2f - layout.width/2f,
+            btnY + size/2f + layout.height/2f        );
+        font.getData().setScale(1.0f);
     }
 
-    @Override
-    public void onPan(float deltaX, float deltaY) {
-        panOffsetX += deltaX * zoom;
-        panOffsetY += deltaY * zoom;
+    public void drawTilePopup(int tileX, int tileY, TileType tileType) {
+        float px = tileX * 128;
+        float py = tileY * 128 + 150;
+        
+        if (px > Gdx.graphics.getWidth() - 220) px = Gdx.graphics.getWidth() - 220;
+        if (py > Gdx.graphics.getHeight() - 120) py = Gdx.graphics.getHeight() - 120;
+        if (px < 20) px = 20;
+        if (py < 120) py = 120;
+
+        batch.setColor(0, 0, 0, 0.7f);
+        batch.draw(whitePixel, px, py, 200, 100);
+        batch.setColor(1, 1, 1, 1);
+
+        font.setColor(Color.WHITE);
+        layout.setText(font, "Bioma: " + tileType.toString());
+        font.draw(batch, layout, px + 10, py + 80);
+
+        layout.setText(font, String.format("Coord: (%d, %d)", tileX, tileY));
+        font.draw(batch, layout, px + 10, py + 60);
+
+        layout.setText(font, "✕");
+        font.draw(batch, layout, px + 180, py + 90);
     }
 
-    @Override
-    public void onZoom(float delta) {
-        zoom += delta;
-        zoom = Math.max(0.5f, Math.min(3.0f, zoom));
-    }
+    public void drawPauseMenu() {
+        batch.setColor(0, 0, 0, 0.6f);
+        batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.setColor(1, 1, 1, 1);
 
-    @Override
-    public void onPauseButtonTapped() {
-        pauseMenuOpen = true;
-        inputController.setPauseMenuOpen(true); // ← Avisa o controller!
-    }
+        font.setColor(Color.YELLOW);
+        layout.setText(font, "PAUSA");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 80);
 
-    @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height, true);
-        uiCamera.setToOrtho(false, width, height); // ← ATUALIZA UI CAMERA!
-    }
+        font.setColor(Color.WHITE);
+        layout.setText(font, "Continuar");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 120);
 
-    @Override
-    public void pause() {}
-    @Override
-    public void resume() {}
-    @Override
-    public void hide() {}
+        layout.setText(font, "Menu Principal");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 160);
+
+        layout.setText(font, "Configurações");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 200);
+
+        layout.setText(font, "Sair");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 240);
+    }
+    public void drawSettingsMenu(
+        boolean invertScrollY,
+        boolean invertPinch,
+        float pinchSensitivity,
+        float scrollSensitivity
+    ) {
+        batch.setColor(0, 0, 0, 0.7f);
+        batch.draw(whitePixel, 50, 50, Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 100);
+        batch.setColor(1, 1, 1, 1);
+
+        font.setColor(Color.YELLOW);
+        layout.setText(font, "CONTROLES");
+        font.draw(batch, layout, 100, Gdx.graphics.getHeight() - 100);
+
+        float y = Gdx.graphics.getHeight() - 140;
+
+        String scrollText = "Inverter Eixo Y: " + (invertScrollY ? "SIM" : "NÃO");
+        layout.setText(font, scrollText);
+        font.draw(batch, layout, 100, y);
+        y -= 40;
+
+        String pinchText = "Inverter Pinça: " + (invertPinch ? "SIM" : "NÃO");
+        layout.setText(font, pinchText);
+        font.draw(batch, layout, 100, y);
+        y -= 40;
+
+        String pinchSensText = "Sens. Pinça: " + String.format("%.4f", pinchSensitivity);
+        layout.setText(font, pinchSensText);
+        font.draw(batch, layout, 100, y);
+        y -= 40;
+
+        String scrollSensText = "Sens. Scroll: " + String.format("%.2f", scrollSensitivity);
+        layout.setText(font, scrollSensText);
+        font.draw(batch, layout, 100, y);
+    }
 
     @Override
     public void dispose() {
-        if (worldRenderer != null) worldRenderer.dispose();
-        if (uiRenderer != null) uiRenderer.dispose();
-        if (worldBatch != null) worldBatch.dispose();
-        if (uiBatch != null) uiBatch.dispose();
+        if (whitePixel != null) whitePixel.dispose();
+        if (font != null) font.dispose();
     }
 }
