@@ -1,0 +1,134 @@
+name: GDX-Liftoff Build (Manual Debug)
+
+on:
+  # 🔒 Gatilhos automáticos desativados. Mantidos comentados para referência futura.
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Ativar upload de artefatos de depuração (logs, configs, sources)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  build-and-upload:
+    name: Build Android & Core + Full Debug
+    runs-on: ubuntu-latest
+
+    steps:
+      # =========================================================
+      # 1️⃣ PREPARAÇÃO
+      # =========================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Ensure Gradle Wrapper executable
+        run: chmod +x ./gradlew
+
+      # =========================================================
+      # 2️⃣ LIMPEZA & VERIFICAÇÃO (Detalhes do WF2 adaptados)
+      # =========================================================
+      - name: Remove 'analisar-remover' directory (Safety Clean)
+        run: |
+          if [ -d "analisar-remover" ]; then
+            echo "⚠️ Found 'analisar-remover' directory. Removing for safety..."
+            rm -rf analisar-remover
+            echo "✅ Directory removed successfully."
+          else
+            echo "ℹ️ 'analisar-remover' directory not found. Skipping removal."
+          fi
+
+      - name: Clean Build Directory
+        run: ./gradlew --no-daemon clean
+
+      - name: 📊 Check Disk Space
+        run: |
+          echo "=== DISK SPACE CHECK ==="
+          df -h
+          echo "========================"
+
+      # =========================================================
+      # 3️⃣ COMPILAÇÃO (Android + Core)
+      # =========================================================
+      - name: Build Core and Android
+        run: |
+          ./gradlew :core:build
+          ./gradlew :android:assembleDebug
+
+      # =========================================================
+      # 4️⃣ ARTEFATOS PRINCIPAIS (Sempre gerados)
+      # =========================================================
+      - name: Artifact - Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pato-teste-android-apk
+          path: android/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: Artifact - Core JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-bin-core-jar
+          path: core/build/libs/*.jar
+          retention-days: 30
+
+      # =========================================================
+      # 5️⃣ DEPURAÇÃO CONDICIONAL (Apenas se debug_mode == 'true')
+      # =========================================================
+      - name: 🕵️ Debug - Upload Build Logs & Reports
+        if: github.event.inputs.debug_mode == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-debug-build-logs
+          path: |
+            build/reports/
+            build/test-results/
+            android/build/reports/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: 🕵️ Debug - Upload Android Config
+        if: github.event.inputs.debug_mode == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-debug-android-config
+          path: android/*
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: 🕵️ Debug - Upload Core Sources
+        if: github.event.inputs.debug_mode == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: z-debug-core-sources
+          path: core/src/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: 📋 Build Summary (Debug Only)
+        if: github.event.inputs.debug_mode == 'true'
+        run: |
+          echo "## 🔍 Modo Debug Ativado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Espaço em disco pós-build:**" >> $GITHUB_STEP_SUMMARY
+          df -h . >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Artefatos de depuração gerados e disponíveis na aba 'Actions'." >> $GITHUB_STEP_SUMMARY
